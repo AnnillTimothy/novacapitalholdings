@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Contact — Nova Capital Holdings{% endblock %}
+
+{% block content %}
+<div class="animated-bg min-h-screen">
+
+  <!-- Hero -->
+  <section class="pt-32 pb-16 px-6">
+    <div class="max-w-3xl mx-auto contact-hero text-center">
+      <div class="inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-sm text-amber-400 border border-amber-500/30 mb-8">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        <span>Contact Us</span>
+      </div>
+      <h1 class="text-5xl md:text-6xl font-black text-white mb-5">Let's <span class="gradient-text">Connect</span></h1>
+      <p class="text-slate-400 text-lg">Whether you're exploring investment opportunities, partnership discussions, or media inquiries—we'd love to hear from you.</p>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="py-10 px-6 pb-24">
+    <div class="max-w-5xl mx-auto grid md:grid-cols-5 gap-8">
+
+      <!-- Contact Info -->
+      <div class="contact-info md:col-span-2 space-y-5">
+        <div class="glass rounded-2xl p-6 border border-slate-700/50">
+          <h3 class="text-white font-bold mb-5">Get in Touch</h3>
+          <div class="space-y-4">
+            {% set contact_items = [
+              ('Headquarters', 'One Nova Plaza, 55th Floor\nNew York, NY 10004', 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'),
+              ('Email', 'invest@novacapital.com', 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'),
+              ('Phone', '+1 (212) 555-0100', 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z'),
+              ('Global Offices', 'New York · London · Singapore · Dubai', 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064'),
+            ] %}
+            {% for label, value, icon_path in contact_items %}
+            <div class="flex gap-3">
+              <div class="w-9 h-9 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ icon_path }}"/>
+                </svg>
+              </div>
+              <div>
+                <div class="text-slate-500 text-xs mb-0.5">{{ label }}</div>
+                <div class="text-slate-300 text-sm whitespace-pre-line">{{ value }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="glass rounded-2xl p-6 border border-amber-500/20">
+          <h4 class="text-amber-400 font-semibold text-sm mb-2">Investment Inquiries</h4>
+          <p class="text-slate-400 text-sm leading-relaxed">For institutional investors and qualified accredited investors interested in co-investment opportunities, please contact our investor relations team.</p>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="contact-form md:col-span-3">
+        {% if submitted %}
+        <div class="glass rounded-2xl p-10 border border-emerald-500/30 text-center h-full flex flex-col items-center justify-center min-h-64">
+          <div class="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </div>
+          <h3 class="text-white text-2xl font-bold mb-3">Message Sent!</h3>
+          <p class="text-slate-400">Thank you for reaching out. Our team will respond within 1–2 business days.</p>
+          <a href="{{ url_for('public.contact') }}" class="mt-6 btn-secondary px-5 py-2 rounded-lg text-sm">Send Another</a>
+        </div>
+        {% else %}
+        <form method="POST" class="glass rounded-2xl p-7 border border-slate-700/50 space-y-5">
+          <h3 class="text-white font-bold text-lg mb-2">Send a Message</h3>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="text-slate-400 text-sm mb-1.5 block">Full Name</label>
+              <input type="text" name="name" placeholder="John Smith" required
+                class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 transition-all"/>
+            </div>
+            <div>
+              <label class="text-slate-400 text-sm mb-1.5 block">Email Address</label>
+              <input type="email" name="email" placeholder="john@company.com" required
+                class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 transition-all"/>
+            </div>
+          </div>
+          <div>
+            <label class="text-slate-400 text-sm mb-1.5 block">Company (Optional)</label>
+            <input type="text" name="company" placeholder="Your organization"
+              class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 transition-all"/>
+          </div>
+          <div>
+            <label class="text-slate-400 text-sm mb-1.5 block">Subject</label>
+            <select name="subject" required
+              class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500/50 transition-all">
+              <option value="" class="bg-slate-900">Select a subject</option>
+              <option value="investment" class="bg-slate-900">Investment Inquiry</option>
+              <option value="partnership" class="bg-slate-900">Partnership Opportunity</option>
+              <option value="media" class="bg-slate-900">Media &amp; Press</option>
+              <option value="other" class="bg-slate-900">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-slate-400 text-sm mb-1.5 block">Message</label>
+            <textarea rows="5" name="message" placeholder="Tell us about your inquiry..." required
+              class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-white placeholder-slate-600 text-sm focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 transition-all resize-none"></textarea>
+          </div>
+          <button type="submit" class="btn-primary w-full py-3.5 rounded-xl font-bold gap-2 justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+            Send Message
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+gsap.fromTo('.contact-hero > *', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: 'power3.out', delay: 0.2 });
+gsap.fromTo('.contact-form, .contact-info', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.2, ease: 'power3.out', delay: 0.5 });
+</script>
+{% endblock %}
