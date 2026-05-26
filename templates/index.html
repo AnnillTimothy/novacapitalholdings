@@ -1,0 +1,573 @@
+{% extends "base.html" %}
+{% block title %}Nova Capital Holdings{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Observer full-page panels */
+  html, body { overflow: hidden; height: 100%; }
+  #panels-container {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .panel {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    will-change: transform;
+  }
+  /* Panel indicator dots */
+  #panel-nav {
+    position: fixed;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .panel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(245,158,11,0.3);
+    border: 1px solid rgba(245,158,11,0.5);
+    cursor: pointer;
+    transition: all 0.4s;
+  }
+  .panel-dot.active {
+    background: #f59e0b;
+    box-shadow: 0 0 10px rgba(245,158,11,0.6);
+    transform: scale(1.6);
+  }
+  /* Wireframe cube SVG */
+  .cube-line { stroke: rgba(245,158,11,0.6); stroke-width: 1; fill: none; }
+  .cube-line-dim { stroke: rgba(245,158,11,0.15); stroke-width: 1; fill: none; }
+  /* Section labels */
+  .section-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,158,11,0.6);
+    font-weight: 600;
+  }
+  /* Company row hover */
+  .co-row {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: background 0.25s;
+  }
+  .co-row:hover { background: rgba(245,158,11,0.04); }
+  /* Horizontal scrolling companies */
+  .co-scroll { overflow-x: auto; scrollbar-width: none; }
+  .co-scroll::-webkit-scrollbar { display: none; }
+  /* Sector tag */
+  .sector-tag {
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.5);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .sector-tag:hover { border-color: #f59e0b; color: #f59e0b; }
+  /* Split layout helpers */
+  .split-left { border-right: 1px solid rgba(255,255,255,0.06); }
+  /* Marquee */
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .marquee-track { animation: marquee 30s linear infinite; display: flex; white-space: nowrap; }
+  /* Glitch effect on heading */
+  @keyframes glitch1 {
+    0%,100% { clip-path: inset(0 0 90% 0); transform: translateX(0); }
+    50% { clip-path: inset(0 0 90% 0); transform: translateX(3px); }
+  }
+  @keyframes glitch2 {
+    0%,100% { clip-path: inset(80% 0 0 0); transform: translateX(0); }
+    50% { clip-path: inset(80% 0 0 0); transform: translateX(-3px); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Fixed Panel Navigation Dots -->
+<div id="panel-nav">
+  <div class="panel-dot active" data-index="0" title="Home"></div>
+  <div class="panel-dot" data-index="1" title="Portfolio"></div>
+  <div class="panel-dot" data-index="2" title="Philosophy"></div>
+  <div class="panel-dot" data-index="3" title="Sectors"></div>
+  <div class="panel-dot" data-index="4" title="Connect"></div>
+</div>
+
+<!-- All Panels -->
+<div id="panels-container">
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PANEL 0: HERO                               -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="panel" id="panel-0" style="background:#030712;">
+    <!-- Subtle grid -->
+    <div class="absolute inset-0 opacity-[0.03]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:80px 80px;"></div>
+
+    <div class="relative z-10 grid grid-cols-12 h-full px-12 pt-20" style="align-items:center;">
+      <!-- Left column -->
+      <div class="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col justify-center pr-8">
+        <p class="section-label mb-6" id="hero-eyebrow">Est. 2019 · Global Holdings</p>
+        <h1 id="hero-heading" class="font-black leading-[0.9] mb-8" style="font-size:clamp(3.5rem,8vw,7rem);color:#fff;">
+          NOVA<br>
+          <span class="gradient-text">CAPITAL</span><br>
+          HOLDINGS
+        </h1>
+        <p id="hero-sub" class="text-slate-400 max-w-sm mb-10 leading-relaxed" style="font-size:0.95rem;">
+          A next-generation investment firm deploying strategic capital across transformative technologies, sustainable energy, and emerging global markets.
+        </p>
+        <div id="hero-cta" class="flex items-center gap-4 flex-wrap">
+          <a href="{{ url_for('public.portfolio') }}" class="btn-primary px-7 py-3 rounded-lg text-sm">
+            Explore Portfolio
+          </a>
+          <a href="{{ url_for('auth.login') }}" class="btn-secondary px-7 py-3 rounded-lg text-sm">
+            Staff Portal
+          </a>
+        </div>
+      </div>
+
+      <!-- Center: Wireframe cube -->
+      <div class="hidden lg:flex col-span-12 lg:col-span-4 items-center justify-center">
+        <div id="cube-wrap" style="width:320px;height:320px;position:relative;">
+          <svg id="hero-cube" viewBox="0 0 320 320" width="320" height="320">
+            <!-- Back face -->
+            <polygon class="cube-line-dim" points="160,40 260,90 260,220 160,270"/>
+            <polygon class="cube-line-dim" points="60,90 160,40 160,270 60,220"/>
+            <!-- Axes / diagonals -->
+            <line class="cube-line-dim" x1="160" y1="155" x2="260" y2="90"/>
+            <line class="cube-line-dim" x1="160" y1="155" x2="60" y2="90"/>
+            <line class="cube-line-dim" x1="160" y1="155" x2="160" y2="40"/>
+            <!-- Front face -->
+            <polygon class="cube-line" points="160,40 260,90 260,220 160,270 60,220 60,90"/>
+            <!-- Vertical center -->
+            <line class="cube-line" x1="160" y1="40" x2="160" y2="270" stroke-dasharray="6 4"/>
+            <!-- Horizontal center -->
+            <line class="cube-line" x1="60" y1="155" x2="260" y2="155" stroke-dasharray="6 4"/>
+            <!-- Diagonal lines -->
+            <line class="cube-line" x1="60" y1="90" x2="260" y2="220"/>
+            <line class="cube-line" x1="260" y1="90" x2="60" y2="220"/>
+            <!-- Center point -->
+            <circle cx="160" cy="155" r="5" fill="#f59e0b" opacity="0.9"/>
+            <circle cx="160" cy="155" r="12" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.3"/>
+            <!-- Labels -->
+            <text x="268" y="158" fill="rgba(245,158,11,0.7)" font-size="9" font-family="monospace" letter-spacing="1">AUM</text>
+            <text x="40" y="86" fill="rgba(245,158,11,0.7)" font-size="9" font-family="monospace" letter-spacing="1">YOY</text>
+            <text x="148" y="288" fill="rgba(245,158,11,0.7)" font-size="9" font-family="monospace" letter-spacing="1">INTL</text>
+          </svg>
+          <!-- Rotating ring -->
+          <div id="cube-ring" style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(245,158,11,0.08);"></div>
+        </div>
+      </div>
+
+      <!-- Right column: live stats -->
+      <div class="hidden xl:flex col-span-12 xl:col-span-4 flex-col justify-center pl-8">
+        <p class="section-label mb-6">Portfolio Metrics</p>
+        <div class="space-y-6">
+          <div>
+            <div class="text-white font-black mb-1" style="font-size:2.2rem;" id="stat-aum">$21.4B</div>
+            <div class="text-slate-500 text-xs tracking-widest uppercase">Assets Under Management</div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div>
+            <div class="text-white font-black mb-1" style="font-size:2.2rem;">{{ public_companies|length }}</div>
+            <div class="text-slate-500 text-xs tracking-widest uppercase">Active Holdings</div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div>
+            <div class="text-white font-black mb-1" style="font-size:2.2rem;">{{ sectors|length }}</div>
+            <div class="text-slate-500 text-xs tracking-widest uppercase">Sectors of Operation</div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div>
+            <div class="gradient-text font-black mb-1" style="font-size:2.2rem;">+143%</div>
+            <div class="text-slate-500 text-xs tracking-widest uppercase">Average Portfolio Return</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom: Marquee ticker -->
+    <div class="absolute bottom-0 left-0 right-0" style="border-top:1px solid rgba(255,255,255,0.06);overflow:hidden;height:36px;">
+      <div class="marquee-track h-full items-center flex">
+        {% set ticker_items = ['NovaTech Systems · +142%', 'Quantum Energy Corp · +89%', 'BioNova Pharma · +67%', 'MetaVerse Realty · +215%', 'Arctic Logistics · +54%', 'DeepSea Mining · +12%'] %}
+        {% for item in ticker_items + ticker_items %}
+        <span class="text-xs tracking-widest uppercase mx-8" style="color:rgba(245,158,11,0.5);">{{ item }}</span>
+        <span class="text-xs mx-4" style="color:rgba(255,255,255,0.1);">◆</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Scroll hint -->
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
+      <span class="text-xs tracking-widest uppercase text-white">Scroll</span>
+      <div style="width:1px;height:32px;background:linear-gradient(to bottom,#f59e0b,transparent);"></div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PANEL 1: PORTFOLIO NAVIGATOR                -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="panel" id="panel-1" style="background:#030712;transform:translateY(100%);">
+    <div class="absolute inset-0 opacity-[0.02]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:60px 60px;"></div>
+
+    <div class="relative z-10 h-full grid grid-cols-12 px-12 pt-24 pb-16" style="align-items:start;overflow:hidden;">
+      <!-- Left: TOC -->
+      <div class="col-span-3 split-left pr-8 h-full flex flex-col justify-between py-4">
+        <div>
+          <p class="section-label mb-6">Navigate Our Subsidiaries</p>
+          <div class="space-y-3" id="co-toc">
+            {% for c in public_companies %}
+            <button class="co-toc-btn block text-left text-sm font-medium transition-all duration-300 py-1 text-slate-500 hover:text-white"
+                    data-index="{{ loop.index0 }}">
+              {{ "%02d"|format(loop.index) }}. {{ c.name }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        <a href="{{ url_for('public.portfolio') }}" class="text-xs tracking-widest uppercase text-amber-400 hover:text-amber-300 flex items-center gap-2">
+          View All
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+      </div>
+
+      <!-- Center: Company detail -->
+      <div class="col-span-5 px-8 h-full flex flex-col justify-center" id="co-detail">
+        {% for c in public_companies %}
+        <div class="co-detail-pane {% if not loop.first %}hidden{% endif %}" data-index="{{ loop.index0 }}">
+          <p class="section-label mb-4">{{ c.sector }}</p>
+          <h2 class="text-white font-black leading-tight mb-4" style="font-size:clamp(2rem,4vw,3.5rem);">{{ c.name }}</h2>
+          <p class="text-slate-400 leading-relaxed mb-8 max-w-md" style="font-size:0.9rem;">{{ c.description }}</p>
+          <div class="grid grid-cols-2 gap-4 mb-8">
+            <div>
+              <div class="text-white font-black text-2xl">{{ c.ownership }}%</div>
+              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Ownership</div>
+            </div>
+            <div>
+              <div class="gradient-text font-black text-2xl">{{ c.growth or 'N/A' }}</div>
+              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Growth</div>
+            </div>
+            <div>
+              <div class="text-white font-black text-2xl">
+                {% if c.valuation >= 1000000000 %}${{ "%.1f"|format(c.valuation/1000000000) }}B
+                {% else %}${{ "%.0f"|format(c.valuation/1000000) }}M{% endif %}
+              </div>
+              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Valuation</div>
+            </div>
+            <div>
+              <div class="text-white font-black text-2xl">{{ c.employees or '—' }}</div>
+              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Employees</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs px-3 py-1 rounded-sm font-medium tracking-widest uppercase" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">{{ c.status }}</span>
+            <span class="text-slate-600 text-xs">{{ c.headquarters or '' }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Right: Visual index -->
+      <div class="col-span-4 pl-8 split-left h-full flex flex-col justify-center gap-3 overflow-y-auto">
+        <p class="section-label mb-2">Holdings Network</p>
+        {% for c in public_companies %}
+        <div class="co-row p-3 cursor-pointer co-card-btn" data-index="{{ loop.index0 }}">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-white text-sm font-semibold mb-0.5">{{ c.name }}</div>
+              <div class="text-slate-500 text-xs">{{ c.sector }}</div>
+            </div>
+            <div class="text-right">
+              <div class="gradient-text text-sm font-bold">{{ c.growth or '—' }}</div>
+              <div class="text-slate-600 text-xs">YoY</div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PANEL 2: PHILOSOPHY                         -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="panel" id="panel-2" style="background:#030712;transform:translateY(100%);">
+    <div class="absolute inset-0 opacity-[0.02]" style="background-image:radial-gradient(circle,#f59e0b 1px,transparent 1px);background-size:60px 60px;"></div>
+
+    <div class="relative z-10 grid grid-cols-12 px-12 h-full" style="align-items:center;">
+      <!-- Left -->
+      <div class="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col justify-center">
+        <p class="section-label mb-6">Our Philosophy</p>
+        <div id="phil-heading" class="font-black leading-[0.9] mb-8" style="font-size:clamp(3rem,6vw,5.5rem);color:#fff;">
+          CAPITAL<br>THAT<br><span class="gradient-text">CREATES</span><br>LEGACY
+        </div>
+        <a href="{{ url_for('public.about') }}" class="btn-secondary px-7 py-3 rounded-lg text-sm w-fit">
+          Our Story
+        </a>
+      </div>
+
+      <!-- Right: manifesto lines -->
+      <div class="hidden lg:block col-span-12 lg:col-span-7 xl:col-span-8 pl-16">
+        <div class="space-y-8" id="phil-lines">
+          <div class="phil-line" style="opacity:0;transform:translateX(40px);">
+            <div class="text-slate-700 text-xs tracking-widest uppercase mb-2">01 / Investment Thesis</div>
+            <div class="text-white font-medium leading-relaxed" style="font-size:1.1rem;">
+              We identify transformative companies at the intersection of emerging technology and real-world impact — then deploy capital with conviction and patience.
+            </div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div class="phil-line" style="opacity:0;transform:translateX(40px);">
+            <div class="text-slate-700 text-xs tracking-widest uppercase mb-2">02 / Value Creation</div>
+            <div class="text-white font-medium leading-relaxed" style="font-size:1.1rem;">
+              Beyond capital, we bring operational expertise, global networks, and strategic guidance to every holding in our portfolio.
+            </div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div class="phil-line" style="opacity:0;transform:translateX(40px);">
+            <div class="text-slate-700 text-xs tracking-widest uppercase mb-2">03 / Long-Term Vision</div>
+            <div class="text-white font-medium leading-relaxed" style="font-size:1.1rem;">
+              We build enduring enterprises. Our investment horizon extends beyond quarters — we measure success in decades, not cycles.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PANEL 3: SECTORS                            -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="panel" id="panel-3" style="background:#030712;transform:translateY(100%);">
+    <div class="absolute inset-0 opacity-[0.025]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:40px 40px;"></div>
+
+    <div class="relative z-10 px-12 h-full flex flex-col justify-center">
+      <p class="section-label mb-4">Sectors of Operation</p>
+
+      <!-- Big sector grid -->
+      <div id="sectors-grid" class="grid grid-cols-2 md:grid-cols-3 gap-px" style="background:rgba(255,255,255,0.06);">
+        {% set sector_data = [
+          ('Technology', 'Artificial intelligence, enterprise software, cybersecurity', '01'),
+          ('Clean Energy', 'Fusion, solar, grid storage, zero-carbon industrial', '02'),
+          ('Healthcare', 'Gene therapy, precision medicine, biotech platforms', '03'),
+          ('Real Estate', 'Digital-physical convergence, tokenised property', '04'),
+          ('Logistics', 'Autonomous supply chain, last-mile robotics', '05'),
+          ('Resources', 'Critical minerals, deep-sea extraction, sustainability', '06'),
+        ] %}
+        {% for name, desc, num in sector_data %}
+        <div class="sector-cell p-8 flex flex-col justify-between" style="background:#030712;transition:background 0.3s;" onmouseenter="this.style.background='rgba(245,158,11,0.03)'" onmouseleave="this.style.background='#030712'">
+          <div class="text-slate-700 text-xs font-mono mb-4">{{ num }}</div>
+          <div>
+            <div class="text-white font-bold text-lg mb-2">{{ name }}</div>
+            <div class="text-slate-500 text-sm leading-relaxed">{{ desc }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PANEL 4: CONNECT / PORTAL                   -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="panel" id="panel-4" style="background:#030712;transform:translateY(100%);">
+    <div class="relative z-10 grid grid-cols-12 px-12 h-full" style="align-items:center;">
+      <!-- Left: contact info -->
+      <div class="col-span-12 lg:col-span-5 split-left pr-12 flex flex-col justify-center h-full py-24">
+        <p class="section-label mb-6">Get in Touch</p>
+        <h2 class="font-black leading-[0.9] mb-8 text-white" style="font-size:clamp(2.5rem,5vw,4.5rem);">
+          LET'S BUILD<br>SOMETHING<br><span class="gradient-text">LASTING.</span>
+        </h2>
+        <div class="space-y-6 mb-10">
+          <div>
+            <div class="text-slate-600 text-xs tracking-widest uppercase mb-1">Investor Relations</div>
+            <div class="text-slate-300 text-sm">invest@novacapital.com</div>
+          </div>
+          <div>
+            <div class="text-slate-600 text-xs tracking-widest uppercase mb-1">General Enquiries</div>
+            <div class="text-slate-300 text-sm">hello@novacapital.com</div>
+          </div>
+          <div>
+            <div class="text-slate-600 text-xs tracking-widest uppercase mb-1">Global Headquarters</div>
+            <div class="text-slate-300 text-sm">New York · London · Singapore · Dubai</div>
+          </div>
+        </div>
+        <a href="{{ url_for('public.contact') }}" class="btn-primary px-7 py-3 rounded-lg text-sm w-fit">
+          Send a Message
+        </a>
+      </div>
+
+      <!-- Right: portal CTA -->
+      <div class="hidden lg:flex col-span-12 lg:col-span-7 pl-12 flex-col justify-center h-full py-24">
+        <p class="section-label mb-6">Internal Access</p>
+        <div style="border:1px solid rgba(255,255,255,0.06);padding:3rem;position:relative;overflow:hidden;">
+          <!-- Scan line animation -->
+          <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+            <div id="scan-line" style="position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.4),transparent);"></div>
+          </div>
+          <div class="text-slate-600 text-xs tracking-widest uppercase mb-6">Secure Portal</div>
+          <h3 class="text-white font-black text-3xl mb-4">Staff &amp; Admin<br>Dashboard</h3>
+          <p class="text-slate-500 text-sm leading-relaxed mb-8 max-w-md">
+            Access the internal management portal to view financial reports, manage portfolio companies, and control sensitive documentation.
+          </p>
+          <div class="flex items-center gap-2 text-xs text-slate-600 mb-8">
+            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+            <span>Secured with enterprise-grade encryption</span>
+          </div>
+          <a href="{{ url_for('auth.login') }}" class="btn-secondary px-7 py-3 rounded-lg text-sm inline-flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            Access Portal
+          </a>
+        </div>
+
+        <!-- Footer bar -->
+        <div class="flex items-center justify-between mt-8 pt-8" style="border-top:1px solid rgba(255,255,255,0.06);">
+          <span class="text-slate-600 text-xs">© 2024 Nova Capital Holdings</span>
+          <div class="flex items-center gap-6">
+            <a href="{{ url_for('public.about') }}" class="text-slate-600 hover:text-white text-xs transition-colors">About</a>
+            <a href="{{ url_for('public.portfolio') }}" class="text-slate-600 hover:text-white text-xs transition-colors">Portfolio</a>
+            <a href="{{ url_for('public.contact') }}" class="text-slate-600 hover:text-white text-xs transition-colors">Contact</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /#panels-container -->
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+gsap.registerPlugin(Observer);
+
+const panels = gsap.utils.toArray('.panel');
+const dots   = gsap.utils.toArray('.panel-dot');
+let currentIndex = 0;
+let animating    = false;
+
+// Initial state: all panels except first are below viewport
+gsap.set(panels.slice(1), { yPercent: 100 });
+
+function updateDots(index) {
+  dots.forEach((d, i) => d.classList.toggle('active', i === index));
+}
+
+function gotoPanel(index, direction) {
+  if (index < 0 || index >= panels.length || animating) return;
+  animating = true;
+
+  const prev = panels[currentIndex];
+  const next = panels[index];
+
+  const tl = gsap.timeline({
+    defaults: { duration: 1.1, ease: 'power3.inOut' },
+    onComplete: () => { animating = false; }
+  });
+
+  // Exit current panel
+  tl.to(prev, { yPercent: direction > 0 ? -100 : 100 }, 0);
+  // Enter next panel
+  tl.fromTo(next,
+    { yPercent: direction > 0 ? 100 : -100 },
+    { yPercent: 0 },
+    0
+  );
+
+  // Animate panel content
+  animatePanelIn(next, index);
+
+  currentIndex = index;
+  updateDots(index);
+}
+
+function animatePanelIn(panel, index) {
+  if (index === 0) {
+    gsap.fromTo('#hero-eyebrow', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.8, delay:0.3, ease:'power3.out' });
+    gsap.fromTo('#hero-heading',  { opacity:0, y:40 }, { opacity:1, y:0, duration:0.9, delay:0.4, ease:'power3.out' });
+    gsap.fromTo('#hero-sub',      { opacity:0, y:20 }, { opacity:1, y:0, duration:0.7, delay:0.6, ease:'power3.out' });
+    gsap.fromTo('#hero-cta',      { opacity:0, y:15 }, { opacity:1, y:0, duration:0.7, delay:0.7, ease:'power3.out' });
+    gsap.to('#hero-cube', { rotation:5, duration:6, repeat:-1, yoyo:true, ease:'sine.inOut' });
+  }
+  if (index === 1) {
+    gsap.fromTo('.co-toc-btn', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5, stagger:0.06, delay:0.3, ease:'power2.out' });
+    gsap.fromTo('.co-detail-pane:not(.hidden)', { opacity:0, y:30 }, { opacity:1, y:0, duration:0.7, delay:0.4, ease:'power3.out' });
+    gsap.fromTo('.co-row', { opacity:0, x:20 }, { opacity:1, x:0, duration:0.5, stagger:0.05, delay:0.4, ease:'power2.out' });
+  }
+  if (index === 2) {
+    gsap.fromTo('#phil-heading', { opacity:0, x:-40 }, { opacity:1, x:0, duration:0.9, delay:0.3, ease:'power3.out' });
+    gsap.to('.phil-line', { opacity:1, x:0, duration:0.7, stagger:0.15, delay:0.5, ease:'power3.out' });
+  }
+  if (index === 3) {
+    gsap.fromTo('.sector-cell', { opacity:0, y:30 }, { opacity:1, y:0, duration:0.6, stagger:0.08, delay:0.3, ease:'power3.out' });
+  }
+  if (index === 4) {
+    gsap.fromTo('#panel-4 h2', { opacity:0, y:30 }, { opacity:1, y:0, duration:0.8, delay:0.3, ease:'power3.out' });
+    gsap.fromTo('#panel-4 h3', { opacity:0, x:30 }, { opacity:1, x:0, duration:0.8, delay:0.5, ease:'power3.out' });
+    // Scan line
+    gsap.fromTo('#scan-line', { top:'-1px' }, { top:'100%', duration:3, repeat:-1, ease:'none', delay:0.8 });
+  }
+}
+
+// Observer
+Observer.create({
+  type: 'wheel,touch,pointer',
+  wheelSpeed: -1,
+  onDown:  () => !animating && gotoPanel(currentIndex - 1, -1),
+  onUp:    () => !animating && gotoPanel(currentIndex + 1,  1),
+  tolerance: 10,
+  preventDefault: true,
+});
+
+// Dot click navigation
+dots.forEach((dot, i) => {
+  dot.addEventListener('click', () => {
+    const dir = i > currentIndex ? 1 : -1;
+    gotoPanel(i, dir);
+  });
+});
+
+// TOC and card clicks (Panel 1)
+document.querySelectorAll('.co-toc-btn, .co-card-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const idx = parseInt(btn.dataset.index);
+    document.querySelectorAll('.co-detail-pane').forEach(p => p.classList.add('hidden'));
+    const target = document.querySelector(`.co-detail-pane[data-index="${idx}"]`);
+    if (target) {
+      target.classList.remove('hidden');
+      gsap.fromTo(target, { opacity:0, y:20 }, { opacity:1, y:0, duration:0.4, ease:'power2.out' });
+    }
+    document.querySelectorAll('.co-toc-btn').forEach(b => b.classList.remove('text-amber-400','text-white'));
+    document.querySelectorAll('.co-toc-btn').forEach(b => b.classList.add('text-slate-500'));
+    const tocBtn = document.querySelector(`.co-toc-btn[data-index="${idx}"]`);
+    if (tocBtn) { tocBtn.classList.remove('text-slate-500'); tocBtn.classList.add('text-amber-400'); }
+  });
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); gotoPanel(currentIndex + 1,  1); }
+  if (e.key === 'ArrowUp'   || e.key === 'PageUp')   { e.preventDefault(); gotoPanel(currentIndex - 1, -1); }
+});
+
+// Boot
+animatePanelIn(panels[0], 0);
+</script>
+{% endblock %}

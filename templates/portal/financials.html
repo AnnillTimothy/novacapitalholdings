@@ -1,0 +1,115 @@
+{% extends "portal/base.html" %}
+{% block title %}Financials — Nova Capital Portal{% endblock %}
+
+{% block portal_content %}
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="text-3xl font-black text-white mb-1">Financial Reports</h1>
+    <p class="text-slate-400">Internal financial performance &amp; analytics</p>
+  </div>
+  <button class="btn-secondary px-5 py-2.5 rounded-xl text-sm font-medium gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+    Export Data
+  </button>
+</div>
+
+{% if latest %}
+<!-- Latest Report Highlight -->
+<div class="glass rounded-2xl p-7 border border-amber-500/20 mb-8">
+  <div class="flex items-start justify-between mb-6">
+    <div>
+      <div class="text-amber-400 text-sm font-semibold mb-1">Latest Report</div>
+      <h2 class="text-white text-2xl font-black">{{ latest.title }}</h2>
+      <div class="flex items-center gap-2 mt-2 text-slate-500 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span>{{ latest.created_at | format_date }}</span>
+        <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-xs font-semibold">{{ latest.type }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="grid grid-cols-3 gap-5">
+    <div class="bg-slate-800/50 rounded-xl p-5">
+      <div class="flex items-center gap-2 text-slate-400 text-sm mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        Total Assets
+      </div>
+      <div class="text-white text-2xl font-black">{{ fmt_currency(latest.total_assets) }}</div>
+    </div>
+    <div class="bg-slate-800/50 rounded-xl p-5">
+      <div class="flex items-center gap-2 text-slate-400 text-sm mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Total Revenue
+      </div>
+      <div class="text-white text-2xl font-black">{{ fmt_currency(latest.total_revenue) }}</div>
+    </div>
+    <div class="bg-slate-800/50 rounded-xl p-5">
+      <div class="flex items-center gap-2 text-slate-400 text-sm mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        Net Income
+      </div>
+      <div class="text-white text-2xl font-black">{{ fmt_currency(latest.net_income) }}</div>
+      <div class="text-emerald-400 text-sm mt-1">
+        {{ "%.1f" | format(latest.net_income / latest.total_revenue * 100) }}% margin
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- All Reports -->
+<div class="space-y-4">
+  <h2 class="text-white font-bold text-lg">All Reports</h2>
+  {% for report in reports %}
+  {% set margin = report.net_income / report.total_revenue * 100 %}
+  {% set is_positive = report.net_income > 0 %}
+  <div class="bg-slate-900/50 rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all">
+    <div class="flex items-start justify-between">
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <div>
+          <h3 class="text-white font-bold">{{ report.title }}</h3>
+          <div class="flex items-center gap-3 mt-1">
+            <span class="text-slate-500 text-sm">{{ report.period }}</span>
+            <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-xs">{{ report.type }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-white font-bold">{{ fmt_currency(report.total_revenue) }}</div>
+        <div class="text-slate-500 text-xs">Revenue</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800">
+      <div>
+        <div class="text-slate-500 text-xs mb-0.5">Assets</div>
+        <div class="text-white text-sm font-semibold">{{ fmt_currency(report.total_assets) }}</div>
+      </div>
+      <div>
+        <div class="text-slate-500 text-xs mb-0.5">Revenue</div>
+        <div class="text-white text-sm font-semibold">{{ fmt_currency(report.total_revenue) }}</div>
+      </div>
+      <div>
+        <div class="text-slate-500 text-xs mb-0.5">Net Income</div>
+        <div class="text-sm font-semibold {{ 'text-emerald-400' if is_positive else 'text-red-400' }}">
+          {{ '+' if is_positive else '' }}{{ fmt_currency(report.net_income) }}
+        </div>
+      </div>
+      <div>
+        <div class="text-slate-500 text-xs mb-0.5">Margin</div>
+        <div class="text-sm font-semibold flex items-center gap-1 {{ 'text-emerald-400' if is_positive else 'text-red-400' }}">
+          {% if is_positive %}
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          {% else %}
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17H5m0 0l8-8 4 4 6-6"/></svg>
+          {% endif %}
+          {{ "%.1f" | format(margin) }}%
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

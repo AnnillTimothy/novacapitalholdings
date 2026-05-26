@@ -1,0 +1,157 @@
+{% extends "portal/base.html" %}
+{% block title %}{{ 'Edit' if company else 'New' }} Company — Nova Capital Portal{% endblock %}
+
+{% block portal_content %}
+<div class="max-w-2xl">
+  <!-- Header -->
+  <div class="mb-8">
+    <a href="{{ url_for('portal.companies') }}" class="text-slate-500 hover:text-white text-sm flex items-center gap-1 mb-4 transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Back to Companies
+    </a>
+    <h1 class="text-3xl font-black text-white mb-1">
+      {{ 'Edit ' + company.name if company else 'Add New Company' }}
+    </h1>
+    <p class="text-slate-400 text-sm">{{ 'Update the company details below.' if company else 'Enter the details for the new portfolio company.' }}</p>
+  </div>
+
+  <form method="POST" class="space-y-6">
+    <!-- Core Info -->
+    <div class="glass rounded-2xl p-6">
+      <h2 class="text-white font-semibold mb-5">Core Information</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Company Name *</label>
+          <input type="text" name="name" required value="{{ company.name if company else '' }}"
+                 class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
+                 placeholder="e.g. NovaTech Systems">
+        </div>
+        <div>
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Ticker Symbol</label>
+          <input type="text" name="ticker" value="{{ company.ticker if company else '' }}"
+                 class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
+                 placeholder="e.g. NTS">
+        </div>
+        <div>
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Sector *</label>
+          <select name="sector" required
+                  class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all">
+            <option value="">Select sector…</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {{ 'selected' if company and company.sector == cat else '' }}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Description *</label>
+          <textarea name="description" required rows="4"
+                    class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all resize-none"
+                    placeholder="Brief description of the company and its activities…">{{ company.description if company else '' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Financials -->
+    <div class="glass rounded-2xl p-6">
+      <h2 class="text-white font-semibold mb-5">Financial Details</h2>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Ownership %</label>
+          <input type="number" name="ownership" step="0.1" min="0" max="100"
+                 value="{{ company.ownership if company else '' }}"
+                 class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
+                 placeholder="67.5">
+        </div>
+        <div>
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Valuation ($)</label>
+          <input type="number" name="valuation" step="1000" min="0"
+                 value="{{ company.valuation if company else '' }}"
+                 class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
+                 placeholder="4200000000">
+        </div>
+        <div>
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Invested ($)</label>
+          <input type="number" name="invested" step="1000" min="0"
+                 value="{{ company.invested if company else '' }}"
+                 class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
+                 placeholder="850000000">
+        </div>
+        <div>
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">YoY Growth</label>
+          <input type="text" name="growth" value="{{ company.growth if company else '' }}"
+                 class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
+                 placeholder="+142%">
+        </div>
+        <div>
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Status</label>
+          <select name="status"
+                  class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all">
+            {% for s in ['Active', 'Developing', 'Exited', 'Watch'] %}
+            <option value="{{ s }}" {{ 'selected' if company and company.status == s else ('selected' if not company and s == 'Active' else '') }}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Accent Colour</label>
+          <select name="color"
+                  class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all">
+            {% for col in ['amber', 'sky', 'emerald', 'violet', 'orange', 'teal', 'rose', 'indigo'] %}
+            <option value="{{ col }}" {{ 'selected' if company and company.color == col else ('selected' if not company and col == 'amber' else '') }}>{{ col|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Operations -->
+    <div class="glass rounded-2xl p-6">
+      <h2 class="text-white font-semibold mb-5">Operational Details</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Employees</label>
+          <input type="number" name="employees" min="0"
+                 value="{{ company.employees if company else '' }}"
+                 class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
+                 placeholder="2400">
+        </div>
+        <div>
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Year Founded</label>
+          <input type="number" name="founded" min="1900" max="2030"
+                 value="{{ company.founded if company else '' }}"
+                 class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
+                 placeholder="2018">
+        </div>
+        <div class="col-span-2">
+          <label class="block text-slate-400 text-xs tracking-widest uppercase mb-2">Headquarters</label>
+          <input type="text" name="headquarters" value="{{ company.headquarters if company else '' }}"
+                 class="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
+                 placeholder="San Francisco, CA">
+        </div>
+      </div>
+    </div>
+
+    <!-- Visibility -->
+    <div class="glass rounded-2xl p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-white font-semibold">Public Visibility</h2>
+          <p class="text-slate-400 text-sm mt-1">Show this company on the public-facing portfolio page.</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" name="is_public" class="sr-only peer"
+                 {{ 'checked' if (company and company.is_public) or not company else '' }}>
+          <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:bg-amber-500/70 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-4">
+      <button type="submit" class="btn-primary px-8 py-3 rounded-xl text-sm">
+        {{ 'Save Changes' if company else 'Create Company' }}
+      </button>
+      <a href="{{ url_for('portal.companies') }}" class="btn-secondary px-6 py-3 rounded-xl text-sm">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

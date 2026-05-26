@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Portal — Nova Capital Holdings{% endblock %}</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { colors: { slate: { 950: '#030712' } } } } }</script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #020817; color: #f1f5f9; min-height: 100vh; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .glass { background: rgba(15,23,42,0.6); backdrop-filter: blur(20px); border: 1px solid rgba(148,163,184,0.1); }
+    .gradient-text { background: linear-gradient(135deg,#f59e0b,#fbbf24,#f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .btn-primary { background: linear-gradient(135deg,#f59e0b,#d97706); color: #030712; font-weight: 700; transition: all .3s; display: inline-flex; align-items: center; }
+    .btn-primary:hover { background: linear-gradient(135deg,#fbbf24,#f59e0b); box-shadow: 0 0 20px rgba(245,158,11,.4); }
+    .btn-secondary { background: transparent; border: 1px solid rgba(245,158,11,.5); color: #f59e0b; transition: all .3s; display: inline-flex; align-items: center; }
+    .btn-secondary:hover { background: rgba(245,158,11,.1); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100">
+
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="fixed left-0 top-0 bottom-0 w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-40">
+    <!-- Logo -->
+    <div class="p-5 border-b border-slate-800">
+      <a href="{{ url_for('public.index') }}" class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+          <span class="text-slate-900 font-black text-sm">N</span>
+        </div>
+        <div>
+          <div class="text-white font-bold text-sm">Nova Capital</div>
+          <div class="text-amber-400 text-xs">Internal Portal</div>
+        </div>
+      </a>
+    </div>
+
+    <!-- User info -->
+    <div class="p-4 border-b border-slate-800">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/30 to-amber-600/30 border border-amber-500/20 flex items-center justify-center">
+          <span class="text-amber-400 font-bold text-sm">{{ current_user.get_initials() }}</span>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="text-white text-sm font-semibold truncate">{{ current_user.name or 'User' }}</div>
+          <div class="text-slate-500 text-xs truncate">{{ current_user.email }}</div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <span class="text-xs px-2.5 py-1 rounded-full border font-semibold
+          {% if current_user.role == 'ADMIN' %}bg-red-500/20 text-red-400 border-red-500/30
+          {% elif current_user.role == 'EXECUTIVE' %}bg-amber-500/20 text-amber-400 border-amber-500/30
+          {% elif current_user.role == 'ANALYST' %}bg-sky-500/20 text-sky-400 border-sky-500/30
+          {% else %}bg-slate-500/20 text-slate-400 border-slate-500/30{% endif %}">
+          {{ current_user.role }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Global Search -->
+    <div class="px-4 pb-3 border-b border-slate-800 relative">
+      <div class="relative">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input id="global-search-input" type="text" placeholder="Search companies, documents…"
+               class="w-full bg-slate-800/60 border border-slate-700/50 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:bg-slate-800 transition-all"
+               autocomplete="off">
+      </div>
+      <!-- Search dropdown results -->
+      <div id="search-results"
+           class="absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl z-[200] hidden"
+           style="max-height:360px;overflow-y:auto;mx:1rem;">
+        <div id="search-results-inner" class="p-2"></div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+      <div class="text-slate-600 text-xs font-semibold tracking-widest uppercase px-3 mb-3">Navigation</div>
+
+      <!-- Dashboard - all roles -->
+      <a href="{{ url_for('portal.dashboard') }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+         {% if request.endpoint == 'portal.dashboard' %}bg-amber-500/15 text-amber-400 border border-amber-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        <span class="flex-1">Dashboard</span>
+        {% if request.endpoint == 'portal.dashboard' %}<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>{% endif %}
+      </a>
+
+      <!-- Companies - all roles -->
+      <a href="{{ url_for('portal.companies') }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+         {% if 'portal.compan' in request.endpoint %}bg-amber-500/15 text-amber-400 border border-amber-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        <span class="flex-1">Companies</span>
+        {% if 'portal.compan' in request.endpoint %}<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>{% endif %}
+      </a>
+
+      <!-- Documents - all roles -->
+      <a href="{{ url_for('portal.documents') }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+         {% if request.endpoint == 'portal.documents' %}bg-amber-500/15 text-amber-400 border border-amber-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="flex-1">Documents</span>
+        {% if request.endpoint == 'portal.documents' %}<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>{% endif %}
+      </a>
+
+      <!-- Financials - ANALYST+ -->
+      {% if current_user.is_analyst_or_above %}
+      <a href="{{ url_for('portal.financials') }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+         {% if request.endpoint == 'portal.financials' %}bg-amber-500/15 text-amber-400 border border-amber-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <span class="flex-1">Financials</span>
+        {% if request.endpoint == 'portal.financials' %}<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>{% endif %}
+      </a>
+      {% endif %}
+
+      <!-- Banking - EXEC+ -->
+      {% if current_user.is_exec_or_admin %}
+      <a href="{{ url_for('portal.banking') }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+         {% if request.endpoint == 'portal.banking' %}bg-amber-500/15 text-amber-400 border border-amber-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        <span class="flex-1">Banking</span>
+        {% if request.endpoint == 'portal.banking' %}<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>{% endif %}
+      </a>
+      {% endif %}
+
+      <!-- Users - ADMIN only -->
+      {% if current_user.is_admin %}
+      <a href="{{ url_for('portal.users') }}"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+         {% if request.endpoint == 'portal.users' %}bg-amber-500/15 text-amber-400 border border-amber-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <span class="flex-1">User Management</span>
+        {% if request.endpoint == 'portal.users' %}<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>{% endif %}
+      </a>
+      {% endif %}
+    </nav>
+
+    <!-- Footer -->
+    <div class="p-3 border-t border-slate-800 space-y-1">
+      <a href="{{ url_for('public.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+        Public Site
+      </a>
+      <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 ml-64 min-h-screen">
+    <div class="p-6 lg:p-8">
+      {% block portal_content %}{% endblock %}
+    </div>
+  </main>
+</div>
+
+<!-- Global Search Script -->
+<script>
+(function() {
+  const input = document.getElementById('global-search-input');
+  const results = document.getElementById('search-results');
+  const inner  = document.getElementById('search-results-inner');
+  if (!input) return;
+
+  let timer;
+
+  input.addEventListener('input', function() {
+    clearTimeout(timer);
+    const q = this.value.trim();
+    if (q.length < 2) { results.classList.add('hidden'); return; }
+    timer = setTimeout(() => fetchSearch(q), 250);
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!results.contains(e.target) && e.target !== input) {
+      results.classList.add('hidden');
+    }
+  });
+
+  function fetchSearch(q) {
+    fetch('/portal/search?q=' + encodeURIComponent(q))
+      .then(r => r.json())
+      .then(data => renderResults(data, q));
+  }
+
+  function renderResults(data, q) {
+    const total = data.companies.length + data.documents.length + data.vault_docs.length;
+    if (total === 0) {
+      inner.innerHTML = '<p class="text-slate-500 text-xs text-center py-6">No results for "' + q + '"</p>';
+      results.classList.remove('hidden');
+      return;
+    }
+
+    let html = '';
+
+    if (data.companies.length) {
+      html += '<div class="text-slate-600 text-xs tracking-widest uppercase px-3 pt-3 pb-1">Companies</div>';
+      data.companies.forEach(c => {
+        html += `<a href="${c.url}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors group">
+          <div class="w-7 h-7 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16"/></svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="text-white text-xs font-semibold truncate">${c.name}</div>
+            <div class="text-slate-500 text-xs">${c.sector} · ${c.status}</div>
+          </div>
+        </a>`;
+      });
+    }
+
+    if (data.vault_docs.length) {
+      html += '<div class="text-slate-600 text-xs tracking-widest uppercase px-3 pt-3 pb-1">Vault Documents</div>';
+      data.vault_docs.forEach(d => {
+        html += `<a href="${d.url}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors">
+          <div class="w-7 h-7 rounded-lg bg-violet-500/15 flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="text-white text-xs font-semibold truncate">${d.title}</div>
+            <div class="text-slate-500 text-xs">${d.company} · ${d.vault_tab}${d.document_type ? ' · ' + d.document_type : ''}</div>
+          </div>
+        </a>`;
+      });
+    }
+
+    if (data.documents.length) {
+      html += '<div class="text-slate-600 text-xs tracking-widest uppercase px-3 pt-3 pb-1">Global Documents</div>';
+      data.documents.forEach(d => {
+        html += `<a href="${d.url}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors">
+          <div class="w-7 h-7 rounded-lg bg-sky-500/15 flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="text-white text-xs font-semibold truncate">${d.title}</div>
+            <div class="text-slate-500 text-xs">${d.category}${d.is_confidential ? ' · Confidential' : ''}</div>
+          </div>
+        </a>`;
+      });
+    }
+
+    inner.innerHTML = html;
+    results.classList.remove('hidden');
+  }
+})();
+</script>
+</body>
+</html>
