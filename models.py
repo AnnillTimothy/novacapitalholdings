@@ -123,11 +123,51 @@ class PortfolioCompany(db.Model):
     headquarters = db.Column(db.String(200))
     color = db.Column(db.String(50), default="amber")
     growth = db.Column(db.String(20))
+    is_public = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    vault_documents = db.relationship("CompanyDocument", backref="company", lazy=True, cascade="all, delete-orphan")
 
     @property
     def roi(self):
         if self.invested and self.invested > 0:
             return ((self.valuation / self.invested) - 1) * 100
         return 0
+
+    @property
+    def financials_docs(self):
+        return [d for d in self.vault_documents if d.vault_tab == "Financials"]
+
+    @property
+    def legal_docs(self):
+        return [d for d in self.vault_documents if d.vault_tab == "Legal"]
+
+    @property
+    def operations_docs(self):
+        return [d for d in self.vault_documents if d.vault_tab == "Operations"]
+
+
+VAULT_TABS = ["Financials", "Legal", "Operations"]
+
+COMPANY_CATEGORIES = [
+    "Technology", "Clean Energy", "Healthcare", "Real Estate",
+    "Logistics", "Resources", "Finance", "Consumer", "Industrial", "Other",
+]
+
+
+class CompanyDocument(db.Model):
+    __tablename__ = "company_document"
+
+    id = db.Column(db.String(36), primary_key=True, default=generate_id)
+    company_id = db.Column(db.String(36), db.ForeignKey("portfolio_company.id"), nullable=False)
+    vault_tab = db.Column(db.String(20), nullable=False)  # Financials / Legal / Operations
+    title = db.Column(db.String(500), nullable=False)
+    description = db.Column(db.Text)
+    document_type = db.Column(db.String(100))  # e.g. "Balance Sheet", "Tax Certificate", etc.
+    file_url = db.Column(db.String(500))
+    notes = db.Column(db.Text)
+    is_confidential = db.Column(db.Boolean, default=True)
+    uploaded_by = db.Column(db.String(36), db.ForeignKey("user.id"), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

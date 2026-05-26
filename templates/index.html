@@ -1,229 +1,573 @@
 {% extends "base.html" %}
-{% block title %}Nova Capital Holdings — Building Tomorrow's Legacy{% endblock %}
+{% block title %}Nova Capital Holdings{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Observer full-page panels */
+  html, body { overflow: hidden; height: 100%; }
+  #panels-container {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .panel {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    will-change: transform;
+  }
+  /* Panel indicator dots */
+  #panel-nav {
+    position: fixed;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .panel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(245,158,11,0.3);
+    border: 1px solid rgba(245,158,11,0.5);
+    cursor: pointer;
+    transition: all 0.4s;
+  }
+  .panel-dot.active {
+    background: #f59e0b;
+    box-shadow: 0 0 10px rgba(245,158,11,0.6);
+    transform: scale(1.6);
+  }
+  /* Wireframe cube SVG */
+  .cube-line { stroke: rgba(245,158,11,0.6); stroke-width: 1; fill: none; }
+  .cube-line-dim { stroke: rgba(245,158,11,0.15); stroke-width: 1; fill: none; }
+  /* Section labels */
+  .section-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,158,11,0.6);
+    font-weight: 600;
+  }
+  /* Company row hover */
+  .co-row {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: background 0.25s;
+  }
+  .co-row:hover { background: rgba(245,158,11,0.04); }
+  /* Horizontal scrolling companies */
+  .co-scroll { overflow-x: auto; scrollbar-width: none; }
+  .co-scroll::-webkit-scrollbar { display: none; }
+  /* Sector tag */
+  .sector-tag {
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.5);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .sector-tag:hover { border-color: #f59e0b; color: #f59e0b; }
+  /* Split layout helpers */
+  .split-left { border-right: 1px solid rgba(255,255,255,0.06); }
+  /* Marquee */
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .marquee-track { animation: marquee 30s linear infinite; display: flex; white-space: nowrap; }
+  /* Glitch effect on heading */
+  @keyframes glitch1 {
+    0%,100% { clip-path: inset(0 0 90% 0); transform: translateX(0); }
+    50% { clip-path: inset(0 0 90% 0); transform: translateX(3px); }
+  }
+  @keyframes glitch2 {
+    0%,100% { clip-path: inset(80% 0 0 0); transform: translateX(0); }
+    50% { clip-path: inset(80% 0 0 0); transform: translateX(-3px); }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="animated-bg min-h-screen">
 
-  <!-- Hero Section -->
-  <section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-    <!-- Grid bg -->
-    <div class="absolute inset-0 opacity-5">
-      <div style="background-image:linear-gradient(rgba(245,158,11,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,0.3) 1px,transparent 1px);background-size:60px 60px" class="w-full h-full"></div>
-    </div>
+<!-- Fixed Panel Navigation Dots -->
+<div id="panel-nav">
+  <div class="panel-dot active" data-index="0" title="Home"></div>
+  <div class="panel-dot" data-index="1" title="Portfolio"></div>
+  <div class="panel-dot" data-index="2" title="Philosophy"></div>
+  <div class="panel-dot" data-index="3" title="Sectors"></div>
+  <div class="panel-dot" data-index="4" title="Connect"></div>
+</div>
 
-    <!-- Particles -->
-    {% for i in range(20) %}
-    <div class="particle absolute rounded-full opacity-0"
-         data-index="{{ i }}"
-         style="width:{{ [2,3,4,5,6][i % 5] }}px;height:{{ [2,3,4,5,6][i % 5] }}px;left:{{ (i * 17 + 5) % 100 }}%;top:{{ (i * 13 + 10) % 100 }}%;background:{{ ['#f59e0b','#0ea5e9','#8b5cf6'][i % 3] }}">
-    </div>
-    {% endfor %}
+<!-- All Panels -->
+<div id="panels-container">
 
-    <!-- Glow orbs -->
-    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl pointer-events-none"></div>
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PANEL 0: HERO                               -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="panel" id="panel-0" style="background:#030712;">
+    <!-- Subtle grid -->
+    <div class="absolute inset-0 opacity-[0.03]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:80px 80px;"></div>
 
-    <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
-      <div class="hero-badge inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-sm text-amber-400 border border-amber-500/30 mb-8">
-        <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
-        <span>Strategic Holdings · Global Vision</span>
-      </div>
-
-      <h1 id="hero-title" class="text-5xl md:text-7xl lg:text-8xl font-black leading-none mb-6">
-        <span class="text-white">Building</span><br>
-        <span class="gradient-text">Tomorrow's</span><br>
-        <span class="text-white">Legacy</span>
-      </h1>
-
-      <p id="hero-subtitle" class="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-        Nova Capital Holdings is a next-generation investment firm deploying strategic capital across transformative technologies, sustainable energy, and emerging global markets.
-      </p>
-
-      <div id="hero-cta" class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="{{ url_for('public.portfolio') }}" class="btn-primary px-8 py-4 rounded-xl text-base font-bold gap-2 group">
-          Explore Portfolio
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-        </a>
-        <a href="{{ url_for('public.about') }}" class="btn-secondary px-8 py-4 rounded-xl text-base font-medium">
-          Our Strategy
-        </a>
-      </div>
-    </div>
-
-    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-500 text-xs">
-      <span class="tracking-widest uppercase">Scroll</span>
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-      </svg>
-    </div>
-  </section>
-
-  <!-- Stats Section -->
-  <section id="stats-section" class="py-20 px-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {% set stats = [
-          ('Assets Under Management', '$24.5B+', ''),
-          ('Portfolio Companies', '6', ''),
-          ('Countries Invested', '18+', ''),
-          ('Annual Growth', '34%', '')
-        ] %}
-        {% for label, value, _ in stats %}
-        <div class="stat-card glass rounded-2xl p-6 text-center border border-slate-700/50 card-hover">
-          <div class="gradient-text text-3xl md:text-4xl font-black mb-2">{{ value }}</div>
-          <div class="text-slate-400 text-sm">{{ label }}</div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <!-- Features Section -->
-  <section id="features-section" class="py-20 px-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="section-title text-center mb-14">
-        <div class="text-amber-400 text-sm font-semibold tracking-widest uppercase mb-3">Our Approach</div>
-        <h2 class="text-4xl md:text-5xl font-black text-white mb-4">Why Nova Capital?</h2>
-        <p class="text-slate-400 max-w-lg mx-auto">A disciplined, forward-thinking investment philosophy combining quantitative rigor with qualitative vision.</p>
-      </div>
-      <div class="grid md:grid-cols-2 gap-6">
-        {% set features = [
-          ('Strategic Investments', 'Data-driven portfolio construction across high-growth sectors including AI, clean energy, and biotech.', 'from-amber-500 to-orange-500', 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'),
-          ('Global Reach', 'Investments spanning 18 countries, capturing value in emerging and developed markets alike.', 'from-sky-500 to-blue-600', 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064'),
-          ('Risk Excellence', 'Proprietary risk frameworks ensuring capital preservation while maximizing asymmetric returns.', 'from-violet-500 to-purple-600', 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'),
-          ('Decisive Execution', 'Agile deal-making capabilities allowing rapid deployment of capital in time-sensitive opportunities.', 'from-emerald-500 to-teal-600', 'M13 10V3L4 14h7v7l9-11h-7z')
-        ] %}
-        {% for title, desc, gradient, icon_path in features %}
-        <div class="feature-card glass rounded-2xl p-7 border border-slate-700/50 card-hover">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br {{ gradient }} flex items-center justify-center mb-5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ icon_path }}"/>
-            </svg>
-          </div>
-          <h3 class="text-white text-xl font-bold mb-3">{{ title }}</h3>
-          <p class="text-slate-400 leading-relaxed">{{ desc }}</p>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <!-- Portfolio Highlights -->
-  <section id="portfolio-section" class="py-20 px-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="grid md:grid-cols-2 gap-12 items-center">
-        <div>
-          <div class="text-amber-400 text-sm font-semibold tracking-widest uppercase mb-3">Portfolio</div>
-          <h2 class="text-4xl md:text-5xl font-black text-white mb-5">Invested in<br>the Future</h2>
-          <p class="text-slate-400 leading-relaxed mb-8">Our portfolio spans six high-conviction sectors with a combined valuation exceeding $24 billion. Each investment reflects a thesis built on long-term structural shifts.</p>
-          <a href="{{ url_for('public.portfolio') }}" class="btn-primary px-6 py-3 rounded-xl text-sm font-bold gap-2 group">
-            View All Holdings
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+    <div class="relative z-10 grid grid-cols-12 h-full px-12 pt-20" style="align-items:center;">
+      <!-- Left column -->
+      <div class="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col justify-center pr-8">
+        <p class="section-label mb-6" id="hero-eyebrow">Est. 2019 · Global Holdings</p>
+        <h1 id="hero-heading" class="font-black leading-[0.9] mb-8" style="font-size:clamp(3.5rem,8vw,7rem);color:#fff;">
+          NOVA<br>
+          <span class="gradient-text">CAPITAL</span><br>
+          HOLDINGS
+        </h1>
+        <p id="hero-sub" class="text-slate-400 max-w-sm mb-10 leading-relaxed" style="font-size:0.95rem;">
+          A next-generation investment firm deploying strategic capital across transformative technologies, sustainable energy, and emerging global markets.
+        </p>
+        <div id="hero-cta" class="flex items-center gap-4 flex-wrap">
+          <a href="{{ url_for('public.portfolio') }}" class="btn-primary px-7 py-3 rounded-lg text-sm">
+            Explore Portfolio
+          </a>
+          <a href="{{ url_for('auth.login') }}" class="btn-secondary px-7 py-3 rounded-lg text-sm">
+            Staff Portal
           </a>
         </div>
-        <div class="space-y-4">
-          {% set highlights = [
-            ('NovaTech Systems', 'Technology', '$4.2B', '+142%', 'amber'),
-            ('Quantum Energy Corp', 'Clean Energy', '$8.7B', '+89%', 'sky'),
-            ('BioNova Pharma', 'Healthcare', '$3.1B', '+67%', 'emerald')
-          ] %}
-          {% for name, sector, val, growth, color in highlights %}
-          <div class="portfolio-card glass rounded-xl p-5 border border-slate-700/50 flex items-center justify-between card-hover">
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-lg flex items-center justify-center
-                {% if color == 'amber' %}bg-amber-500/20{% elif color == 'sky' %}bg-sky-500/20{% else %}bg-emerald-500/20{% endif %}">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4
-                  {% if color == 'amber' %}text-amber-400{% elif color == 'sky' %}text-sky-400{% else %}text-emerald-400{% endif %}"
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                </svg>
+      </div>
+
+      <!-- Center: Wireframe cube -->
+      <div class="hidden lg:flex col-span-12 lg:col-span-4 items-center justify-center">
+        <div id="cube-wrap" style="width:320px;height:320px;position:relative;">
+          <svg id="hero-cube" viewBox="0 0 320 320" width="320" height="320">
+            <!-- Back face -->
+            <polygon class="cube-line-dim" points="160,40 260,90 260,220 160,270"/>
+            <polygon class="cube-line-dim" points="60,90 160,40 160,270 60,220"/>
+            <!-- Axes / diagonals -->
+            <line class="cube-line-dim" x1="160" y1="155" x2="260" y2="90"/>
+            <line class="cube-line-dim" x1="160" y1="155" x2="60" y2="90"/>
+            <line class="cube-line-dim" x1="160" y1="155" x2="160" y2="40"/>
+            <!-- Front face -->
+            <polygon class="cube-line" points="160,40 260,90 260,220 160,270 60,220 60,90"/>
+            <!-- Vertical center -->
+            <line class="cube-line" x1="160" y1="40" x2="160" y2="270" stroke-dasharray="6 4"/>
+            <!-- Horizontal center -->
+            <line class="cube-line" x1="60" y1="155" x2="260" y2="155" stroke-dasharray="6 4"/>
+            <!-- Diagonal lines -->
+            <line class="cube-line" x1="60" y1="90" x2="260" y2="220"/>
+            <line class="cube-line" x1="260" y1="90" x2="60" y2="220"/>
+            <!-- Center point -->
+            <circle cx="160" cy="155" r="5" fill="#f59e0b" opacity="0.9"/>
+            <circle cx="160" cy="155" r="12" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.3"/>
+            <!-- Labels -->
+            <text x="268" y="158" fill="rgba(245,158,11,0.7)" font-size="9" font-family="monospace" letter-spacing="1">AUM</text>
+            <text x="40" y="86" fill="rgba(245,158,11,0.7)" font-size="9" font-family="monospace" letter-spacing="1">YOY</text>
+            <text x="148" y="288" fill="rgba(245,158,11,0.7)" font-size="9" font-family="monospace" letter-spacing="1">INTL</text>
+          </svg>
+          <!-- Rotating ring -->
+          <div id="cube-ring" style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(245,158,11,0.08);"></div>
+        </div>
+      </div>
+
+      <!-- Right column: live stats -->
+      <div class="hidden xl:flex col-span-12 xl:col-span-4 flex-col justify-center pl-8">
+        <p class="section-label mb-6">Portfolio Metrics</p>
+        <div class="space-y-6">
+          <div>
+            <div class="text-white font-black mb-1" style="font-size:2.2rem;" id="stat-aum">$21.4B</div>
+            <div class="text-slate-500 text-xs tracking-widest uppercase">Assets Under Management</div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div>
+            <div class="text-white font-black mb-1" style="font-size:2.2rem;">{{ public_companies|length }}</div>
+            <div class="text-slate-500 text-xs tracking-widest uppercase">Active Holdings</div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div>
+            <div class="text-white font-black mb-1" style="font-size:2.2rem;">{{ sectors|length }}</div>
+            <div class="text-slate-500 text-xs tracking-widest uppercase">Sectors of Operation</div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div>
+            <div class="gradient-text font-black mb-1" style="font-size:2.2rem;">+143%</div>
+            <div class="text-slate-500 text-xs tracking-widest uppercase">Average Portfolio Return</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom: Marquee ticker -->
+    <div class="absolute bottom-0 left-0 right-0" style="border-top:1px solid rgba(255,255,255,0.06);overflow:hidden;height:36px;">
+      <div class="marquee-track h-full items-center flex">
+        {% set ticker_items = ['NovaTech Systems · +142%', 'Quantum Energy Corp · +89%', 'BioNova Pharma · +67%', 'MetaVerse Realty · +215%', 'Arctic Logistics · +54%', 'DeepSea Mining · +12%'] %}
+        {% for item in ticker_items + ticker_items %}
+        <span class="text-xs tracking-widest uppercase mx-8" style="color:rgba(245,158,11,0.5);">{{ item }}</span>
+        <span class="text-xs mx-4" style="color:rgba(255,255,255,0.1);">◆</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Scroll hint -->
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
+      <span class="text-xs tracking-widest uppercase text-white">Scroll</span>
+      <div style="width:1px;height:32px;background:linear-gradient(to bottom,#f59e0b,transparent);"></div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PANEL 1: PORTFOLIO NAVIGATOR                -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="panel" id="panel-1" style="background:#030712;transform:translateY(100%);">
+    <div class="absolute inset-0 opacity-[0.02]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:60px 60px;"></div>
+
+    <div class="relative z-10 h-full grid grid-cols-12 px-12 pt-24 pb-16" style="align-items:start;overflow:hidden;">
+      <!-- Left: TOC -->
+      <div class="col-span-3 split-left pr-8 h-full flex flex-col justify-between py-4">
+        <div>
+          <p class="section-label mb-6">Navigate Our Subsidiaries</p>
+          <div class="space-y-3" id="co-toc">
+            {% for c in public_companies %}
+            <button class="co-toc-btn block text-left text-sm font-medium transition-all duration-300 py-1 text-slate-500 hover:text-white"
+                    data-index="{{ loop.index0 }}">
+              {{ "%02d"|format(loop.index) }}. {{ c.name }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        <a href="{{ url_for('public.portfolio') }}" class="text-xs tracking-widest uppercase text-amber-400 hover:text-amber-300 flex items-center gap-2">
+          View All
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+      </div>
+
+      <!-- Center: Company detail -->
+      <div class="col-span-5 px-8 h-full flex flex-col justify-center" id="co-detail">
+        {% for c in public_companies %}
+        <div class="co-detail-pane {% if not loop.first %}hidden{% endif %}" data-index="{{ loop.index0 }}">
+          <p class="section-label mb-4">{{ c.sector }}</p>
+          <h2 class="text-white font-black leading-tight mb-4" style="font-size:clamp(2rem,4vw,3.5rem);">{{ c.name }}</h2>
+          <p class="text-slate-400 leading-relaxed mb-8 max-w-md" style="font-size:0.9rem;">{{ c.description }}</p>
+          <div class="grid grid-cols-2 gap-4 mb-8">
+            <div>
+              <div class="text-white font-black text-2xl">{{ c.ownership }}%</div>
+              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Ownership</div>
+            </div>
+            <div>
+              <div class="gradient-text font-black text-2xl">{{ c.growth or 'N/A' }}</div>
+              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Growth</div>
+            </div>
+            <div>
+              <div class="text-white font-black text-2xl">
+                {% if c.valuation >= 1000000000 %}${{ "%.1f"|format(c.valuation/1000000000) }}B
+                {% else %}${{ "%.0f"|format(c.valuation/1000000) }}M{% endif %}
               </div>
-              <div>
-                <div class="text-white font-semibold text-sm">{{ name }}</div>
-                <div class="text-slate-500 text-xs">{{ sector }}</div>
-              </div>
+              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Valuation</div>
+            </div>
+            <div>
+              <div class="text-white font-black text-2xl">{{ c.employees or '—' }}</div>
+              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Employees</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs px-3 py-1 rounded-sm font-medium tracking-widest uppercase" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">{{ c.status }}</span>
+            <span class="text-slate-600 text-xs">{{ c.headquarters or '' }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Right: Visual index -->
+      <div class="col-span-4 pl-8 split-left h-full flex flex-col justify-center gap-3 overflow-y-auto">
+        <p class="section-label mb-2">Holdings Network</p>
+        {% for c in public_companies %}
+        <div class="co-row p-3 cursor-pointer co-card-btn" data-index="{{ loop.index0 }}">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-white text-sm font-semibold mb-0.5">{{ c.name }}</div>
+              <div class="text-slate-500 text-xs">{{ c.sector }}</div>
             </div>
             <div class="text-right">
-              <div class="text-white font-bold text-sm">{{ val }}</div>
-              <div class="text-emerald-400 text-xs font-semibold">{{ growth }}</div>
+              <div class="gradient-text text-sm font-bold">{{ c.growth or '—' }}</div>
+              <div class="text-slate-600 text-xs">YoY</div>
             </div>
           </div>
-          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PANEL 2: PHILOSOPHY                         -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="panel" id="panel-2" style="background:#030712;transform:translateY(100%);">
+    <div class="absolute inset-0 opacity-[0.02]" style="background-image:radial-gradient(circle,#f59e0b 1px,transparent 1px);background-size:60px 60px;"></div>
+
+    <div class="relative z-10 grid grid-cols-12 px-12 h-full" style="align-items:center;">
+      <!-- Left -->
+      <div class="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col justify-center">
+        <p class="section-label mb-6">Our Philosophy</p>
+        <div id="phil-heading" class="font-black leading-[0.9] mb-8" style="font-size:clamp(3rem,6vw,5.5rem);color:#fff;">
+          CAPITAL<br>THAT<br><span class="gradient-text">CREATES</span><br>LEGACY
+        </div>
+        <a href="{{ url_for('public.about') }}" class="btn-secondary px-7 py-3 rounded-lg text-sm w-fit">
+          Our Story
+        </a>
+      </div>
+
+      <!-- Right: manifesto lines -->
+      <div class="hidden lg:block col-span-12 lg:col-span-7 xl:col-span-8 pl-16">
+        <div class="space-y-8" id="phil-lines">
+          <div class="phil-line" style="opacity:0;transform:translateX(40px);">
+            <div class="text-slate-700 text-xs tracking-widest uppercase mb-2">01 / Investment Thesis</div>
+            <div class="text-white font-medium leading-relaxed" style="font-size:1.1rem;">
+              We identify transformative companies at the intersection of emerging technology and real-world impact — then deploy capital with conviction and patience.
+            </div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div class="phil-line" style="opacity:0;transform:translateX(40px);">
+            <div class="text-slate-700 text-xs tracking-widest uppercase mb-2">02 / Value Creation</div>
+            <div class="text-white font-medium leading-relaxed" style="font-size:1.1rem;">
+              Beyond capital, we bring operational expertise, global networks, and strategic guidance to every holding in our portfolio.
+            </div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div class="phil-line" style="opacity:0;transform:translateX(40px);">
+            <div class="text-slate-700 text-xs tracking-widest uppercase mb-2">03 / Long-Term Vision</div>
+            <div class="text-white font-medium leading-relaxed" style="font-size:1.1rem;">
+              We build enduring enterprises. Our investment horizon extends beyond quarters — we measure success in decades, not cycles.
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CTA / Portal Section -->
-  <section class="py-24 px-6">
-    <div class="max-w-4xl mx-auto text-center">
-      <div class="glass rounded-3xl p-12 border border-amber-500/20 relative overflow-hidden scan-line-animation"
-           style="background:linear-gradient(135deg,rgba(245,158,11,0.05),rgba(15,23,42,0.8))">
-        <div class="relative z-10">
-          <div class="inline-flex items-center gap-2 mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-            </svg>
-            <span class="text-amber-400 text-sm font-semibold tracking-wider uppercase">Internal Portal</span>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PANEL 3: SECTORS                            -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="panel" id="panel-3" style="background:#030712;transform:translateY(100%);">
+    <div class="absolute inset-0 opacity-[0.025]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:40px 40px;"></div>
+
+    <div class="relative z-10 px-12 h-full flex flex-col justify-center">
+      <p class="section-label mb-4">Sectors of Operation</p>
+
+      <!-- Big sector grid -->
+      <div id="sectors-grid" class="grid grid-cols-2 md:grid-cols-3 gap-px" style="background:rgba(255,255,255,0.06);">
+        {% set sector_data = [
+          ('Technology', 'Artificial intelligence, enterprise software, cybersecurity', '01'),
+          ('Clean Energy', 'Fusion, solar, grid storage, zero-carbon industrial', '02'),
+          ('Healthcare', 'Gene therapy, precision medicine, biotech platforms', '03'),
+          ('Real Estate', 'Digital-physical convergence, tokenised property', '04'),
+          ('Logistics', 'Autonomous supply chain, last-mile robotics', '05'),
+          ('Resources', 'Critical minerals, deep-sea extraction, sustainability', '06'),
+        ] %}
+        {% for name, desc, num in sector_data %}
+        <div class="sector-cell p-8 flex flex-col justify-between" style="background:#030712;transition:background 0.3s;" onmouseenter="this.style.background='rgba(245,158,11,0.03)'" onmouseleave="this.style.background='#030712'">
+          <div class="text-slate-700 text-xs font-mono mb-4">{{ num }}</div>
+          <div>
+            <div class="text-white font-bold text-lg mb-2">{{ name }}</div>
+            <div class="text-slate-500 text-sm leading-relaxed">{{ desc }}</div>
           </div>
-          <h2 class="text-4xl md:text-5xl font-black text-white mb-5">Secure Access for<br><span class="gradient-text">Team Members</span></h2>
-          <p class="text-slate-400 mb-8 max-w-lg mx-auto">Access financial reports, legal documents, banking details, and portfolio analytics through our encrypted internal portal.</p>
-          <a href="{{ url_for('auth.login') }}" class="btn-primary px-8 py-4 rounded-xl font-bold gap-2 group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-            </svg>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PANEL 4: CONNECT / PORTAL                   -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="panel" id="panel-4" style="background:#030712;transform:translateY(100%);">
+    <div class="relative z-10 grid grid-cols-12 px-12 h-full" style="align-items:center;">
+      <!-- Left: contact info -->
+      <div class="col-span-12 lg:col-span-5 split-left pr-12 flex flex-col justify-center h-full py-24">
+        <p class="section-label mb-6">Get in Touch</p>
+        <h2 class="font-black leading-[0.9] mb-8 text-white" style="font-size:clamp(2.5rem,5vw,4.5rem);">
+          LET'S BUILD<br>SOMETHING<br><span class="gradient-text">LASTING.</span>
+        </h2>
+        <div class="space-y-6 mb-10">
+          <div>
+            <div class="text-slate-600 text-xs tracking-widest uppercase mb-1">Investor Relations</div>
+            <div class="text-slate-300 text-sm">invest@novacapital.com</div>
+          </div>
+          <div>
+            <div class="text-slate-600 text-xs tracking-widest uppercase mb-1">General Enquiries</div>
+            <div class="text-slate-300 text-sm">hello@novacapital.com</div>
+          </div>
+          <div>
+            <div class="text-slate-600 text-xs tracking-widest uppercase mb-1">Global Headquarters</div>
+            <div class="text-slate-300 text-sm">New York · London · Singapore · Dubai</div>
+          </div>
+        </div>
+        <a href="{{ url_for('public.contact') }}" class="btn-primary px-7 py-3 rounded-lg text-sm w-fit">
+          Send a Message
+        </a>
+      </div>
+
+      <!-- Right: portal CTA -->
+      <div class="hidden lg:flex col-span-12 lg:col-span-7 pl-12 flex-col justify-center h-full py-24">
+        <p class="section-label mb-6">Internal Access</p>
+        <div style="border:1px solid rgba(255,255,255,0.06);padding:3rem;position:relative;overflow:hidden;">
+          <!-- Scan line animation -->
+          <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+            <div id="scan-line" style="position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.4),transparent);"></div>
+          </div>
+          <div class="text-slate-600 text-xs tracking-widest uppercase mb-6">Secure Portal</div>
+          <h3 class="text-white font-black text-3xl mb-4">Staff &amp; Admin<br>Dashboard</h3>
+          <p class="text-slate-500 text-sm leading-relaxed mb-8 max-w-md">
+            Access the internal management portal to view financial reports, manage portfolio companies, and control sensitive documentation.
+          </p>
+          <div class="flex items-center gap-2 text-xs text-slate-600 mb-8">
+            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+            <span>Secured with enterprise-grade encryption</span>
+          </div>
+          <a href="{{ url_for('auth.login') }}" class="btn-secondary px-7 py-3 rounded-lg text-sm inline-flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
             Access Portal
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
           </a>
-          <div class="mt-6 flex items-center justify-center gap-6 text-slate-500 text-xs flex-wrap">
-            <div class="flex items-center gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-              <span>256-bit Encryption</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
-              <span>Role-Based Access</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-              <span>Real-Time Data</span>
-            </div>
+        </div>
+
+        <!-- Footer bar -->
+        <div class="flex items-center justify-between mt-8 pt-8" style="border-top:1px solid rgba(255,255,255,0.06);">
+          <span class="text-slate-600 text-xs">© 2024 Nova Capital Holdings</span>
+          <div class="flex items-center gap-6">
+            <a href="{{ url_for('public.about') }}" class="text-slate-600 hover:text-white text-xs transition-colors">About</a>
+            <a href="{{ url_for('public.portfolio') }}" class="text-slate-600 hover:text-white text-xs transition-colors">Portfolio</a>
+            <a href="{{ url_for('public.contact') }}" class="text-slate-600 hover:text-white text-xs transition-colors">Contact</a>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-</div>
+</div><!-- /#panels-container -->
 {% endblock %}
+
 
 {% block extra_scripts %}
 <script>
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(Observer);
 
-// Hero animation
-const tl = gsap.timeline({ delay: 0.3 });
-tl.fromTo('.hero-badge', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' })
-  .fromTo('#hero-title', { opacity: 0, y: 50, skewY: 3 }, { opacity: 1, y: 0, skewY: 0, duration: 1.2, ease: 'power4.out' }, '-=0.4')
-  .fromTo('#hero-subtitle', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.6')
-  .fromTo('#hero-cta', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.4');
+const panels = gsap.utils.toArray('.panel');
+const dots   = gsap.utils.toArray('.panel-dot');
+let currentIndex = 0;
+let animating    = false;
 
-// Particles
-document.querySelectorAll('.particle').forEach((p, i) => {
-  gsap.fromTo(p, { opacity: 0 }, { opacity: Math.random() * 0.6 + 0.2, duration: Math.random() * 2 + 1, delay: i * 0.1 });
-  gsap.to(p, { y: `${Math.random()*60-30}px`, x: `${Math.random()*40-20}px`, rotation: Math.random()*360, duration: Math.random()*6+4, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+// Initial state: all panels except first are below viewport
+gsap.set(panels.slice(1), { yPercent: 100 });
+
+function updateDots(index) {
+  dots.forEach((d, i) => d.classList.toggle('active', i === index));
+}
+
+function gotoPanel(index, direction) {
+  if (index < 0 || index >= panels.length || animating) return;
+  animating = true;
+
+  const prev = panels[currentIndex];
+  const next = panels[index];
+
+  const tl = gsap.timeline({
+    defaults: { duration: 1.1, ease: 'power3.inOut' },
+    onComplete: () => { animating = false; }
+  });
+
+  // Exit current panel
+  tl.to(prev, { yPercent: direction > 0 ? -100 : 100 }, 0);
+  // Enter next panel
+  tl.fromTo(next,
+    { yPercent: direction > 0 ? 100 : -100 },
+    { yPercent: 0 },
+    0
+  );
+
+  // Animate panel content
+  animatePanelIn(next, index);
+
+  currentIndex = index;
+  updateDots(index);
+}
+
+function animatePanelIn(panel, index) {
+  if (index === 0) {
+    gsap.fromTo('#hero-eyebrow', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.8, delay:0.3, ease:'power3.out' });
+    gsap.fromTo('#hero-heading',  { opacity:0, y:40 }, { opacity:1, y:0, duration:0.9, delay:0.4, ease:'power3.out' });
+    gsap.fromTo('#hero-sub',      { opacity:0, y:20 }, { opacity:1, y:0, duration:0.7, delay:0.6, ease:'power3.out' });
+    gsap.fromTo('#hero-cta',      { opacity:0, y:15 }, { opacity:1, y:0, duration:0.7, delay:0.7, ease:'power3.out' });
+    gsap.to('#hero-cube', { rotation:5, duration:6, repeat:-1, yoyo:true, ease:'sine.inOut' });
+  }
+  if (index === 1) {
+    gsap.fromTo('.co-toc-btn', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5, stagger:0.06, delay:0.3, ease:'power2.out' });
+    gsap.fromTo('.co-detail-pane:not(.hidden)', { opacity:0, y:30 }, { opacity:1, y:0, duration:0.7, delay:0.4, ease:'power3.out' });
+    gsap.fromTo('.co-row', { opacity:0, x:20 }, { opacity:1, x:0, duration:0.5, stagger:0.05, delay:0.4, ease:'power2.out' });
+  }
+  if (index === 2) {
+    gsap.fromTo('#phil-heading', { opacity:0, x:-40 }, { opacity:1, x:0, duration:0.9, delay:0.3, ease:'power3.out' });
+    gsap.to('.phil-line', { opacity:1, x:0, duration:0.7, stagger:0.15, delay:0.5, ease:'power3.out' });
+  }
+  if (index === 3) {
+    gsap.fromTo('.sector-cell', { opacity:0, y:30 }, { opacity:1, y:0, duration:0.6, stagger:0.08, delay:0.3, ease:'power3.out' });
+  }
+  if (index === 4) {
+    gsap.fromTo('#panel-4 h2', { opacity:0, y:30 }, { opacity:1, y:0, duration:0.8, delay:0.3, ease:'power3.out' });
+    gsap.fromTo('#panel-4 h3', { opacity:0, x:30 }, { opacity:1, x:0, duration:0.8, delay:0.5, ease:'power3.out' });
+    // Scan line
+    gsap.fromTo('#scan-line', { top:'-1px' }, { top:'100%', duration:3, repeat:-1, ease:'none', delay:0.8 });
+  }
+}
+
+// Observer
+Observer.create({
+  type: 'wheel,touch,pointer',
+  wheelSpeed: -1,
+  onDown:  () => !animating && gotoPanel(currentIndex - 1, -1),
+  onUp:    () => !animating && gotoPanel(currentIndex + 1,  1),
+  tolerance: 10,
+  preventDefault: true,
 });
 
-// Stats
-gsap.fromTo('.stat-card', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: 'power3.out', scrollTrigger: { trigger: '#stats-section', start: 'top 80%' } });
+// Dot click navigation
+dots.forEach((dot, i) => {
+  dot.addEventListener('click', () => {
+    const dir = i > currentIndex ? 1 : -1;
+    gotoPanel(i, dir);
+  });
+});
 
-// Features
-gsap.fromTo('.feature-card', { opacity: 0, y: 50, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.15, ease: 'power3.out', scrollTrigger: { trigger: '#features-section', start: 'top 75%' } });
+// TOC and card clicks (Panel 1)
+document.querySelectorAll('.co-toc-btn, .co-card-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const idx = parseInt(btn.dataset.index);
+    document.querySelectorAll('.co-detail-pane').forEach(p => p.classList.add('hidden'));
+    const target = document.querySelector(`.co-detail-pane[data-index="${idx}"]`);
+    if (target) {
+      target.classList.remove('hidden');
+      gsap.fromTo(target, { opacity:0, y:20 }, { opacity:1, y:0, duration:0.4, ease:'power2.out' });
+    }
+    document.querySelectorAll('.co-toc-btn').forEach(b => b.classList.remove('text-amber-400','text-white'));
+    document.querySelectorAll('.co-toc-btn').forEach(b => b.classList.add('text-slate-500'));
+    const tocBtn = document.querySelector(`.co-toc-btn[data-index="${idx}"]`);
+    if (tocBtn) { tocBtn.classList.remove('text-slate-500'); tocBtn.classList.add('text-amber-400'); }
+  });
+});
 
-// Portfolio cards
-gsap.fromTo('.portfolio-card', { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.8, stagger: 0.2, ease: 'power3.out', scrollTrigger: { trigger: '#portfolio-section', start: 'top 75%' } });
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); gotoPanel(currentIndex + 1,  1); }
+  if (e.key === 'ArrowUp'   || e.key === 'PageUp')   { e.preventDefault(); gotoPanel(currentIndex - 1, -1); }
+});
 
-// Section titles
-gsap.fromTo('.section-title', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: '.section-title', start: 'top 80%' } });
+// Boot
+animatePanelIn(panels[0], 0);
 </script>
 {% endblock %}

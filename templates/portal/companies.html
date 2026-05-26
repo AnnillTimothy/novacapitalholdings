@@ -1,0 +1,225 @@
+{% extends "portal/base.html" %}
+{% block title %}Companies — Nova Capital Portal{% endblock %}
+
+{% block portal_content %}
+<!-- Header -->
+<div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
+  <div>
+    <div class="flex items-center gap-2 text-amber-400 text-sm font-semibold mb-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+      <span>Portfolio Companies</span>
+    </div>
+    <h1 class="text-3xl font-black text-white mb-1">Company Management</h1>
+    <p class="text-slate-400 text-sm">Manage holdings, toggle public visibility, and access document vaults.</p>
+  </div>
+  {% if current_user.is_admin %}
+  <a href="{{ url_for('portal.company_new') }}" class="btn-primary px-6 py-3 rounded-xl text-sm gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    Add Company
+  </a>
+  {% endif %}
+</div>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+  <div class="mb-4 px-4 py-3 rounded-xl text-sm font-medium
+    {% if cat == 'success' %}bg-emerald-500/10 border border-emerald-500/30 text-emerald-400
+    {% else %}bg-red-500/10 border border-red-500/30 text-red-400{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+{% endwith %}
+
+<!-- Filter bar -->
+<div class="glass rounded-xl p-4 mb-6 flex items-center gap-4 flex-wrap">
+  <input id="co-filter" type="text" placeholder="Filter companies…"
+         class="bg-slate-800/60 border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-all flex-1 min-w-48">
+  <select id="sector-filter"
+          class="bg-slate-800/60 border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-amber-500/50 transition-all">
+    <option value="">All Sectors</option>
+    {% for s in sectors %}
+    <option value="{{ s }}">{{ s }}</option>
+    {% endfor %}
+  </select>
+  <select id="status-filter"
+          class="bg-slate-800/60 border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-amber-500/50 transition-all">
+    <option value="">All Statuses</option>
+    <option value="Active">Active</option>
+    <option value="Developing">Developing</option>
+    <option value="Exited">Exited</option>
+  </select>
+  <div class="text-slate-500 text-xs ml-auto" id="co-count">{{ companies|length }} companies</div>
+</div>
+
+<!-- Company table -->
+<div class="glass rounded-2xl overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full" id="co-table">
+      <thead>
+        <tr class="border-b border-slate-700/50">
+          <th class="text-left text-slate-500 text-xs tracking-widest uppercase px-6 py-4 font-semibold">Company</th>
+          <th class="text-left text-slate-500 text-xs tracking-widest uppercase px-4 py-4 font-semibold hidden md:table-cell">Sector</th>
+          <th class="text-left text-slate-500 text-xs tracking-widest uppercase px-4 py-4 font-semibold hidden lg:table-cell">Valuation</th>
+          <th class="text-left text-slate-500 text-xs tracking-widest uppercase px-4 py-4 font-semibold hidden lg:table-cell">ROI</th>
+          <th class="text-left text-slate-500 text-xs tracking-widest uppercase px-4 py-4 font-semibold">Status</th>
+          <th class="text-left text-slate-500 text-xs tracking-widest uppercase px-4 py-4 font-semibold hidden sm:table-cell">Visibility</th>
+          <th class="text-right text-slate-500 text-xs tracking-widest uppercase px-6 py-4 font-semibold">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="co-tbody">
+        {% for c in companies %}
+        <tr class="co-row border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors"
+            data-name="{{ c.name|lower }}"
+            data-sector="{{ c.sector }}"
+            data-status="{{ c.status }}">
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-sm
+                {% if c.color == 'amber' %}bg-amber-500/20 text-amber-400
+                {% elif c.color == 'sky' %}bg-sky-500/20 text-sky-400
+                {% elif c.color == 'emerald' %}bg-emerald-500/20 text-emerald-400
+                {% elif c.color == 'violet' %}bg-violet-500/20 text-violet-400
+                {% elif c.color == 'orange' %}bg-orange-500/20 text-orange-400
+                {% elif c.color == 'teal' %}bg-teal-500/20 text-teal-400
+                {% else %}bg-slate-500/20 text-slate-400{% endif %}">
+                {{ c.name[0] }}
+              </div>
+              <div>
+                <div class="text-white font-semibold text-sm">{{ c.name }}</div>
+                <div class="text-slate-500 text-xs">{{ c.ticker or '—' }} · {{ c.headquarters or '—' }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-4 py-4 hidden md:table-cell">
+            <span class="text-slate-300 text-sm">{{ c.sector }}</span>
+          </td>
+          <td class="px-4 py-4 hidden lg:table-cell">
+            <span class="text-white font-semibold text-sm">{{ fmt_currency(c.valuation) }}</span>
+          </td>
+          <td class="px-4 py-4 hidden lg:table-cell">
+            <span class="gradient-text font-bold text-sm">+{{ "%.0f"|format(c.roi) }}%</span>
+          </td>
+          <td class="px-4 py-4">
+            <span class="text-xs px-2.5 py-1 rounded-full font-semibold
+              {% if c.status == 'Active' %}bg-emerald-500/15 text-emerald-400 border border-emerald-500/30
+              {% elif c.status == 'Developing' %}bg-amber-500/15 text-amber-400 border border-amber-500/30
+              {% else %}bg-slate-500/15 text-slate-400 border border-slate-500/30{% endif %}">
+              {{ c.status }}
+            </span>
+          </td>
+          <td class="px-4 py-4 hidden sm:table-cell">
+            {% if current_user.is_admin %}
+            <form method="POST" action="{{ url_for('portal.company_toggle', company_id=c.id) }}" class="inline">
+              <button type="submit" title="Toggle public visibility"
+                      class="flex items-center gap-1.5 text-xs font-medium transition-all
+                        {% if c.is_public %}text-emerald-400 hover:text-emerald-300{% else %}text-slate-500 hover:text-slate-300{% endif %}">
+                <span class="w-8 h-4 rounded-full relative flex items-center transition-colors
+                  {% if c.is_public %}bg-emerald-500/30{% else %}bg-slate-700{% endif %}">
+                  <span class="absolute w-3 h-3 rounded-full transition-all
+                    {% if c.is_public %}bg-emerald-400 right-0.5{% else %}bg-slate-500 left-0.5{% endif %}">
+                  </span>
+                </span>
+                {{ 'Public' if c.is_public else 'Hidden' }}
+              </button>
+            </form>
+            {% else %}
+            <span class="text-xs {% if c.is_public %}text-emerald-400{% else %}text-slate-500{% endif %}">
+              {{ 'Public' if c.is_public else 'Hidden' }}
+            </span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex items-center justify-end gap-2">
+              <!-- Vault -->
+              <a href="{{ url_for('portal.vault', company_id=c.id) }}"
+                 class="p-2 rounded-lg text-slate-500 hover:text-violet-400 hover:bg-violet-500/10 transition-all" title="Document Vault">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
+              </a>
+              {% if current_user.is_admin %}
+              <!-- Edit -->
+              <a href="{{ url_for('portal.company_edit', company_id=c.id) }}"
+                 class="p-2 rounded-lg text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition-all" title="Edit Company">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </a>
+              <!-- Delete -->
+              <button onclick="confirmDelete('{{ c.id }}', '{{ c.name | e }}')"
+                      class="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Delete Company">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if not companies %}
+  <div class="text-center py-16">
+    <div class="text-slate-600 text-sm mb-4">No companies found.</div>
+    {% if current_user.is_admin %}
+    <a href="{{ url_for('portal.company_new') }}" class="btn-primary px-6 py-2 rounded-xl text-sm">Add First Company</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Delete confirmation modal -->
+<div id="delete-modal" class="fixed inset-0 z-[300] flex items-center justify-center hidden">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeModal()"></div>
+  <div class="relative glass rounded-2xl p-8 max-w-sm w-full mx-4 border border-red-500/20 shadow-2xl">
+    <div class="text-center mb-6">
+      <div class="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </div>
+      <h3 class="text-white font-bold text-xl mb-2">Delete Company</h3>
+      <p class="text-slate-400 text-sm">Are you sure you want to delete <strong id="delete-company-name" class="text-white"></strong>? This will also delete all vault documents and cannot be undone.</p>
+    </div>
+    <form id="delete-form" method="POST">
+      <div class="flex gap-3">
+        <button type="button" onclick="closeModal()" class="flex-1 py-2.5 rounded-xl text-sm text-slate-400 border border-slate-700 hover:bg-slate-800 transition-all">Cancel</button>
+        <button type="submit" class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 transition-all">Delete</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Filter
+  const filterInput  = document.getElementById('co-filter');
+  const sectorFilter = document.getElementById('sector-filter');
+  const statusFilter = document.getElementById('status-filter');
+  const rows = document.querySelectorAll('.co-row');
+
+  function applyFilters() {
+    const q      = filterInput.value.toLowerCase();
+    const sector = sectorFilter.value;
+    const status = statusFilter.value;
+    let visible  = 0;
+    rows.forEach(row => {
+      const matchName   = row.dataset.name.includes(q);
+      const matchSector = !sector || row.dataset.sector === sector;
+      const matchStatus = !status || row.dataset.status === status;
+      const show = matchName && matchSector && matchStatus;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('co-count').textContent = visible + ' companies';
+  }
+
+  filterInput.addEventListener('input', applyFilters);
+  sectorFilter.addEventListener('change', applyFilters);
+  statusFilter.addEventListener('change', applyFilters);
+
+  // Delete modal
+  function confirmDelete(id, name) {
+    document.getElementById('delete-company-name').textContent = name;
+    document.getElementById('delete-form').action = '/portal/companies/' + id + '/delete';
+    document.getElementById('delete-modal').classList.remove('hidden');
+  }
+  function closeModal() {
+    document.getElementById('delete-modal').classList.add('hidden');
+  }
+</script>
+{% endblock %}

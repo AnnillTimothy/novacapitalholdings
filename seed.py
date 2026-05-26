@@ -4,7 +4,7 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from app import app, bcrypt
-from models import db, User, Document, FinancialReport, BankingAccount, PortfolioCompany, UserRole
+from models import db, User, Document, FinancialReport, BankingAccount, PortfolioCompany, CompanyDocument, UserRole
 from datetime import datetime, timedelta
 
 
@@ -86,6 +86,7 @@ def seed():
                 "headquarters": "San Francisco, CA",
                 "color": "amber",
                 "growth": "+142%",
+                "is_public": True,
             },
             {
                 "name": "Quantum Energy Corp",
@@ -101,6 +102,7 @@ def seed():
                 "headquarters": "Houston, TX",
                 "color": "sky",
                 "growth": "+89%",
+                "is_public": True,
             },
             {
                 "name": "BioNova Pharmaceuticals",
@@ -116,6 +118,7 @@ def seed():
                 "headquarters": "Boston, MA",
                 "color": "emerald",
                 "growth": "+67%",
+                "is_public": True,
             },
             {
                 "name": "MetaVerse Realty",
@@ -131,6 +134,7 @@ def seed():
                 "headquarters": "Miami, FL",
                 "color": "violet",
                 "growth": "+215%",
+                "is_public": True,
             },
             {
                 "name": "Arctic Logistics",
@@ -146,6 +150,7 @@ def seed():
                 "headquarters": "Chicago, IL",
                 "color": "orange",
                 "growth": "+54%",
+                "is_public": True,
             },
             {
                 "name": "DeepSea Mining Inc",
@@ -161,14 +166,22 @@ def seed():
                 "headquarters": "Seattle, WA",
                 "color": "teal",
                 "growth": "+12%",
+                "is_public": False,
             },
         ]
 
+        created_companies = {}
         for cd in companies_data:
-            if not PortfolioCompany.query.filter_by(name=cd["name"]).first():
+            existing = PortfolioCompany.query.filter_by(name=cd["name"]).first()
+            if not existing:
                 company = PortfolioCompany(**cd)
                 db.session.add(company)
+                db.session.flush()
+                created_companies[cd["name"]] = company
                 print(f"  Created portfolio company: {cd['name']}")
+            else:
+                created_companies[cd["name"]] = existing
+                print(f"  Company exists: {cd['name']}")
 
         db.session.commit()
 
@@ -357,6 +370,91 @@ def seed():
                     )
                     db.session.add(doc)
                     print(f"  Created document: {dd['title']}")
+
+            db.session.commit()
+
+        # --- Company Document Vault Records ---
+        if admin_user and created_companies:
+            novatech = created_companies.get("NovaTech Systems")
+            quantum  = created_companies.get("Quantum Energy Corp")
+            bionova  = created_companies.get("BioNova Pharmaceuticals")
+
+            vault_docs = []
+            if novatech:
+                vault_docs += [
+                    # Financials
+                    dict(company_id=novatech.id, vault_tab="Financials", title="Q4 2024 Balance Sheet",
+                         document_type="Balance Sheet", description="Full asset and liability statement for Q4 2024.",
+                         notes="Audited by Deloitte. Approved by CFO.", is_confidential=True),
+                    dict(company_id=novatech.id, vault_tab="Financials", title="2024 Income Statement",
+                         document_type="Income Statement", description="Annual P&L for FY2024.",
+                         notes="Net margin improved 4pts YoY.", is_confidential=True),
+                    dict(company_id=novatech.id, vault_tab="Financials", title="Cash Flow Forecast FY2025",
+                         document_type="Cash Flow Projection", description="12-month forward cash flow model.",
+                         notes="Base case assumptions, see model tab.", is_confidential=True),
+                    # Legal
+                    dict(company_id=novatech.id, vault_tab="Legal", title="Certificate of Incorporation",
+                         document_type="Registration Certificate", description="Delaware C-corp registration document.",
+                         is_confidential=True),
+                    dict(company_id=novatech.id, vault_tab="Legal", title="Shareholders Agreement 2022",
+                         document_type="Shareholders Agreement", description="Binding agreement between Nova Capital and co-investors.",
+                         notes="Drag-along rights clause amended in 2023.", is_confidential=True),
+                    dict(company_id=novatech.id, vault_tab="Legal", title="Federal Tax Certificate 2023",
+                         document_type="Tax Certificate", description="IRS tax clearance certificate.",
+                         is_confidential=False),
+                    # Operations
+                    dict(company_id=novatech.id, vault_tab="Operations", title="Modus Operandi 2024",
+                         document_type="Operations Manual", description="Internal operating procedures and governance framework.",
+                         is_confidential=True),
+                    dict(company_id=novatech.id, vault_tab="Operations", title="Key Supplier Agreements",
+                         document_type="Supplier Pipeline", description="Cloud infrastructure and hardware vendor contracts.",
+                         notes="AWS primary, Azure secondary.", is_confidential=True),
+                    dict(company_id=novatech.id, vault_tab="Operations", title="Product Roadmap Q1–Q4 2025",
+                         document_type="Strategy Document", description="Internal product strategy and milestone plan.",
+                         is_confidential=True),
+                ]
+            if quantum:
+                vault_docs += [
+                    dict(company_id=quantum.id, vault_tab="Financials", title="Q3 2024 Accounts",
+                         document_type="Quarterly Accounts", description="Q3 quarterly management accounts.",
+                         is_confidential=True),
+                    dict(company_id=quantum.id, vault_tab="Financials", title="Capex Budget 2025",
+                         document_type="Budget", description="Capital expenditure plan for reactor expansion.",
+                         is_confidential=True),
+                    dict(company_id=quantum.id, vault_tab="Legal", title="Energy Operating Licence",
+                         document_type="Operating Licence", description="DOE energy operating licence (expires 2028).",
+                         is_confidential=False),
+                    dict(company_id=quantum.id, vault_tab="Legal", title="IP Portfolio Summary",
+                         document_type="IP Register", description="Summary of 43 registered patents and trademarks.",
+                         is_confidential=True),
+                    dict(company_id=quantum.id, vault_tab="Operations", title="Fusion Reactor SOP",
+                         document_type="Standard Operating Procedure", description="Safety and operations manual for reactor facilities.",
+                         is_confidential=True),
+                ]
+            if bionova:
+                vault_docs += [
+                    dict(company_id=bionova.id, vault_tab="Financials", title="2024 R&D Budget Allocation",
+                         document_type="Budget", description="Research and development spend breakdown by programme.",
+                         is_confidential=True),
+                    dict(company_id=bionova.id, vault_tab="Legal", title="FDA Clinical Trial Approval",
+                         document_type="Regulatory Approval", description="Phase III trial approval for NB-4401.",
+                         is_confidential=False),
+                    dict(company_id=bionova.id, vault_tab="Legal", title="Compliance Audit Report 2024",
+                         document_type="Compliance Report", description="Annual regulatory compliance audit by external auditors.",
+                         is_confidential=True),
+                    dict(company_id=bionova.id, vault_tab="Operations", title="Clinical Pipeline Strategy",
+                         document_type="Strategy Document", description="Five-year drug development pipeline roadmap.",
+                         is_confidential=True),
+                ]
+
+            for vd in vault_docs:
+                exists = CompanyDocument.query.filter_by(
+                    company_id=vd["company_id"], title=vd["title"]
+                ).first()
+                if not exists:
+                    doc = CompanyDocument(**vd, uploaded_by=admin_user.id)
+                    db.session.add(doc)
+                    print(f"  Created vault doc: {vd['title']}")
 
             db.session.commit()
 
