@@ -1,8 +1,19 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User
 
 auth_bp = Blueprint("auth", __name__)
+
+# Whitelist of allowed "next" paths after login, mapped to safe Flask endpoints.
+# Using url_for() for all redirects prevents open-redirect vulnerabilities.
+_NEXT_ENDPOINT_MAP = {
+    "/portal": "portal.dashboard",
+    "/portal/": "portal.dashboard",
+    "/portal/documents": "portal.documents",
+    "/portal/financials": "portal.financials",
+    "/portal/banking": "portal.banking",
+    "/portal/users": "portal.users",
+}
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -21,8 +32,11 @@ def login():
 
         if user and user.password and bcrypt.check_password_hash(user.password, password):
             login_user(user, remember=True)
-            next_page = request.args.get("next")
-            return redirect(next_page or url_for("portal.dashboard"))
+            # Look up the next path in the whitelist; always redirect via url_for()
+            # so the destination is never derived from user-provided data.
+            raw_next = request.args.get("next", "")
+            endpoint = _NEXT_ENDPOINT_MAP.get(raw_next, "portal.dashboard")
+            return redirect(url_for(endpoint))
         else:
             error = "Invalid email or password. Please try again."
 
