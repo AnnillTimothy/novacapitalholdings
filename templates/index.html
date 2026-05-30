@@ -1,573 +1,1007 @@
-{% extends "base.html" %}
-{% block title %}Nova Capital Holdings{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nova Capital Holdings — Building Systems That Outlive Us</title>
+<meta name="description" content="One Holding. Multiple Businesses. Global Protection. Limitless Potential."/>
 
-{% block extra_head %}
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Observer.min.js"></script>
+
 <style>
-  /* Observer full-page panels */
-  html, body { overflow: hidden; height: 100%; }
-  #panels-container {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-  .panel {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden;
-    will-change: transform;
-  }
-  /* Panel indicator dots */
-  #panel-nav {
-    position: fixed;
-    right: 2rem;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .panel-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(245,158,11,0.3);
-    border: 1px solid rgba(245,158,11,0.5);
-    cursor: pointer;
-    transition: all 0.4s;
-  }
-  .panel-dot.active {
-    background: #f59e0b;
-    box-shadow: 0 0 10px rgba(245,158,11,0.6);
-    transform: scale(1.6);
-  }
-  /* Wireframe cube SVG */
-  .cube-line { stroke: rgba(245,158,11,0.6); stroke-width: 1; fill: none; }
-  .cube-line-dim { stroke: rgba(245,158,11,0.15); stroke-width: 1; fill: none; }
-  /* Section labels */
-  .section-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: rgba(245,158,11,0.6);
-    font-weight: 600;
-  }
-  /* Company row hover */
-  .co-row {
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    transition: background 0.25s;
-  }
-  .co-row:hover { background: rgba(245,158,11,0.04); }
-  /* Horizontal scrolling companies */
-  .co-scroll { overflow-x: auto; scrollbar-width: none; }
-  .co-scroll::-webkit-scrollbar { display: none; }
-  /* Sector tag */
-  .sector-tag {
-    display: inline-block;
-    border: 1px solid rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.5);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border-radius: 2px;
-    transition: all 0.3s;
-    cursor: pointer;
-  }
-  .sector-tag:hover { border-color: #f59e0b; color: #f59e0b; }
-  /* Split layout helpers */
-  .split-left { border-right: 1px solid rgba(255,255,255,0.06); }
-  /* Marquee */
-  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-  .marquee-track { animation: marquee 30s linear infinite; display: flex; white-space: nowrap; }
-  /* Glitch effect on heading */
-  @keyframes glitch1 {
-    0%,100% { clip-path: inset(0 0 90% 0); transform: translateX(0); }
-    50% { clip-path: inset(0 0 90% 0); transform: translateX(3px); }
-  }
-  @keyframes glitch2 {
-    0%,100% { clip-path: inset(80% 0 0 0); transform: translateX(0); }
-    50% { clip-path: inset(80% 0 0 0); transform: translateX(-3px); }
-  }
+/* ─── RESET ─────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --gold:#c9a84c;
+  --gold-l:#e8c97a;
+  --gold-d:rgba(201,168,76,.35);
+  --bg:#06060a;
+  --txt:#e6e1d6;
+  --txt-d:rgba(230,225,214,.45);
+  /* world palette */
+  --w-well:#52b788;
+  --w-tech:#60a5fa;
+  --w-medi:#c084fc;
+  --w-heal:#22d3ee;
+  --w-infr:#fbbf24;
+}
+html,body{overflow:hidden;height:100%;width:100%;}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--gold-d);border-radius:2px;}
+
+/* ─── PANEL ENGINE ───────────────────────────────── */
+#pc{position:fixed;inset:0;}
+.panel{position:absolute;inset:0;overflow:hidden;will-change:transform;}
+
+/* ─── NAV ────────────────────────────────────────── */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:900;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.6rem 3rem;
+  transition:padding .5s,background .5s,border-color .5s;
+}
+#nav.solid{
+  padding:1rem 3rem;
+  background:rgba(6,6,10,.85);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(201,168,76,.12);
+}
+.nl{display:flex;align-items:center;gap:.75rem;text-decoration:none;}
+.nl-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:700;color:var(--txt);letter-spacing:.12em;}
+.nl-sub{font-size:.55rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);}
+.nav-ul{display:flex;align-items:center;gap:2.5rem;list-style:none;}
+.nav-ul a{font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(230,225,214,.55);text-decoration:none;transition:color .3s;position:relative;}
+.nav-ul a::after{content:'';position:absolute;bottom:-3px;left:0;height:1px;width:0;background:var(--gold);transition:width .3s;}
+.nav-ul a:hover{color:var(--txt);}
+.nav-ul a:hover::after{width:100%;}
+.nav-cta{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(201,168,76,.45);padding:.5rem 1.2rem;text-decoration:none;transition:all .3s;}
+.nav-cta:hover{background:rgba(201,168,76,.1);border-color:var(--gold);}
+@media(max-width:768px){.nav-ul,.nav-cta{display:none;}#nav{padding:1.2rem 1.5rem;}#nav.solid{padding:.9rem 1.5rem;}}
+
+/* ─── DOT NAV ────────────────────────────────────── */
+#pnav{position:fixed;right:1.8rem;top:50%;transform:translateY(-50%);z-index:800;display:flex;flex-direction:column;gap:.55rem;}
+.pd{width:5px;height:5px;border-radius:50%;background:rgba(201,168,76,.2);border:1px solid rgba(201,168,76,.4);cursor:pointer;transition:all .4s;}
+.pd.on{background:var(--gold);box-shadow:0 0 8px rgba(201,168,76,.9);transform:scale(1.7);}
+
+/* ─── N LOGO SVG HELPER ──────────────────────────── */
+.n-svg rect,.n-svg polygon{fill:var(--gold);}
+
+/* ─── KEYFRAMES ──────────────────────────────────── */
+@keyframes float-y{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-18px) rotate(3deg);}}
+@keyframes spin-cw{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+@keyframes spin-ccw{from{transform:rotate(0deg);}to{transform:rotate(-360deg);}}
+@keyframes pulse-r{0%{transform:scale(1);opacity:.7;}100%{transform:scale(2.5);opacity:0;}}
+@keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+@keyframes shimmer{0%,100%{opacity:.4;}50%{opacity:1;}}
+
+/* ─── PANEL 0 — HERO ─────────────────────────────── */
+#p0{background:var(--bg);}
+#hc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.hero-wrap{position:relative;z-index:10;height:100%;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:6rem 4rem 4rem;gap:2rem;}
+@media(max-width:768px){.hero-wrap{grid-template-columns:1fr;padding:5.5rem 1.5rem 3rem;}}
+.hero-eyebrow{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(230,225,214,.3);margin-bottom:1.4rem;}
+.hero-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,6vw,5.5rem);font-weight:700;line-height:.95;color:var(--txt);margin-bottom:1.4rem;}
+.hero-h1 em{font-style:italic;background:linear-gradient(135deg,var(--gold),var(--gold-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-p{font-size:.83rem;color:var(--txt-d);max-width:320px;line-height:1.85;margin-bottom:2rem;}
+.scroll-hint{display:flex;align-items:center;gap:.75rem;font-size:.58rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(230,225,214,.28);}
+.scroll-hint::before{content:'';display:inline-block;width:1px;height:26px;background:linear-gradient(to bottom,var(--gold),transparent);}
+.hero-coords{position:absolute;bottom:1.8rem;right:3rem;font-family:'Cormorant Garamond',serif;font-size:.6rem;letter-spacing:.15em;color:rgba(230,225,214,.22);}
+
+/* Center N orb (hero) */
+.hero-orb{position:absolute;left:50%;top:50%;transform:translate(-50%,-55%);z-index:2;pointer-events:none;}
+.orb-ring{position:absolute;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
+.orb-core{width:96px;height:96px;border-radius:50%;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;position:relative;}
+.orb-pulse{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:96px;height:96px;border-radius:50%;border:1px solid rgba(201,168,76,.5);animation:pulse-r 3s ease-out infinite;}
+.orb-pulse2{animation-delay:1.2s;}
+
+/* ─── WORLD PANELS COMMON ────────────────────────── */
+.wl{font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(230,225,214,.28);display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;}
+.wl-num{font-family:'Cormorant Garamond',serif;font-size:.75rem;font-weight:700;}
+.w-title{font-family:'Cormorant Garamond',serif;font-size:clamp(3.2rem,6.5vw,5.8rem);font-weight:700;line-height:.88;letter-spacing:-.02em;margin:.4rem 0 .8rem;}
+.w-tag{font-size:.83rem;color:var(--txt-d);max-width:300px;line-height:1.85;}
+.xbtn{display:inline-flex;align-items:center;gap:.8rem;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(230,225,214,.38);text-decoration:none;margin-top:1.4rem;transition:color .3s;}
+.xbtn::after{content:'';display:inline-block;width:44px;height:1px;background:rgba(230,225,214,.25);transition:width .4s,background .4s;}
+.xbtn:hover{color:var(--txt);}.xbtn:hover::after{width:72px;background:var(--gold);}
+
+/* world grid layout */
+.wg{position:relative;z-index:10;height:100%;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:6.5rem 4rem 4rem;gap:3.5rem;}
+@media(max-width:768px){.wg{grid-template-columns:1fr;padding:5.5rem 1.5rem 3rem;overflow-y:auto;}}
+
+/* entities */
+.ents{display:flex;flex-direction:column;gap:.7rem;}
+.ent{display:flex;align-items:flex-start;gap:.9rem;padding:.7rem 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.ent-ico{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ent-name{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.2rem;}
+.ent-desc{font-size:.66rem;color:var(--txt-d);line-height:1.6;}
+.aside-box{font-size:.68rem;line-height:1.85;color:var(--txt-d);border-left:1px solid rgba(255,255,255,.1);padding-left:1.4rem;margin-top:1rem;}
+.aside-box strong{display:block;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(230,225,214,.25);margin-bottom:.45rem;font-weight:500;}
+
+/* ─── PANEL 1 — WELLNESS ──────────────────────────── */
+#p1{background:radial-gradient(ellipse at 65% 35%,rgba(45,106,79,.32) 0%,transparent 60%),radial-gradient(ellipse at 20% 75%,rgba(27,67,50,.38) 0%,transparent 55%),#040d07;}
+.brands-wrap{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1rem;}
+.bchip{display:flex;align-items:center;gap:.35rem;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(230,225,214,.45);border:1px solid rgba(82,183,136,.18);padding:.28rem .6rem;border-radius:2px;cursor:default;transition:all .3s;}
+.bchip:hover{color:var(--w-well);border-color:rgba(82,183,136,.5);}
+.bchip-dot{width:4px;height:4px;border-radius:50%;background:var(--w-well);}
+.stat-mini{padding:.9rem;border:1px solid rgba(82,183,136,.14);border-radius:2px;}
+.stat-mini-v{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;}
+.stat-mini-l{font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(230,225,214,.28);margin-top:.15rem;}
+
+/* ─── PANEL 2 — TECHNOLOGY ───────────────────────── */
+#p2{background:radial-gradient(ellipse at 70% 30%,rgba(29,78,216,.18) 0%,transparent 60%),radial-gradient(ellipse at 20% 65%,rgba(6,182,212,.1) 0%,transparent 50%),#020412;}
+.circ-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(96,165,250,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(96,165,250,.06) 1px,transparent 1px);background-size:64px 64px;}
+
+/* ─── PANEL 3 — MEDIA ────────────────────────────── */
+#p3{background:radial-gradient(ellipse at 50% 38%,rgba(124,58,237,.22) 0%,transparent 60%),radial-gradient(ellipse at 30% 65%,rgba(236,72,153,.1) 0%,transparent 50%),#06020e;}
+.crowd{position:absolute;bottom:0;left:0;right:0;height:30%;background:rgba(124,58,237,.08);clip-path:polygon(0 100%,0 50%,2% 38%,4% 52%,5.5% 28%,7% 44%,8.5% 22%,10% 38%,11% 18%,13% 36%,15% 48%,16% 26%,18% 42%,19.5% 20%,21% 38%,23% 50%,24.5% 28%,26% 45%,27.5% 22%,29% 38%,30% 50%,32% 28%,34% 44%,36% 18%,38% 36%,40% 50%,42% 26%,44% 42%,46% 20%,48% 38%,50% 52%,52% 30%,54% 46%,56% 22%,58% 38%,60% 52%,62% 28%,64% 44%,66% 18%,68% 36%,70% 50%,72% 26%,74% 42%,76% 20%,78% 38%,80% 50%,82% 28%,84% 44%,86% 22%,88% 38%,90% 50%,92% 28%,94% 44%,96% 18%,98% 36%,100% 48%,100% 100%);}
+.stage-light{position:absolute;pointer-events:none;}
+
+/* ─── PANEL 4 — HEALTH ───────────────────────────── */
+#p4{background:radial-gradient(ellipse at 62% 48%,rgba(8,145,178,.2) 0%,transparent 60%),radial-gradient(ellipse at 28% 30%,rgba(6,182,212,.1) 0%,transparent 50%),#020a0d;}
+
+/* ─── PANEL 5 — INFRASTRUCTURE ──────────────────── */
+#p5{background:radial-gradient(ellipse at 50% 65%,rgba(217,119,6,.2) 0%,transparent 60%),radial-gradient(ellipse at 72% 28%,rgba(251,191,36,.08) 0%,transparent 50%),#0a0700;}
+.city-sky{position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(217,119,6,.18),transparent);clip-path:polygon(0 100%,5% 62%,8% 72%,11% 52%,14% 68%,17% 40%,20% 58%,23% 34%,26% 52%,29% 28%,32% 46%,35% 22%,38% 40%,41% 18%,44% 36%,47% 14%,50% 32%,53% 16%,56% 34%,59% 12%,62% 30%,65% 46%,68% 20%,71% 38%,74% 10%,77% 28%,80% 44%,83% 18%,86% 36%,89% 22%,92% 40%,95% 28%,98% 46%,100% 52%,100% 100%);}
+.city-glow{position:absolute;bottom:0;left:0;right:0;height:35%;background:radial-gradient(ellipse at 50% 100%,rgba(217,119,6,.28),transparent 70%);}
+
+/* ─── PANEL 6 — ECOSYSTEM ────────────────────────── */
+#p6{background:var(--bg);}
+.eco-wrap{position:relative;z-index:10;height:100%;display:grid;grid-template-columns:1fr 1.6fr;align-items:center;padding:6.5rem 4rem 4rem;gap:3rem;}
+@media(max-width:768px){.eco-wrap{grid-template-columns:1fr;padding:5.5rem 1.5rem 3rem;overflow-y:auto;}}
+.eco-map{position:relative;display:flex;align-items:center;justify-content:center;height:420px;}
+.eco-ring-el{position:absolute;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);border:1px solid;}
+.eco-center-node{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:82px;height:82px;border-radius:50%;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.5);display:flex;align-items:center;justify-content:center;z-index:20;}
+.eco-node{position:absolute;display:flex;flex-direction:column;align-items:center;gap:.32rem;z-index:15;}
+.eco-nd{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid;}
+.eco-nl{font-size:.46rem;letter-spacing:.2em;text-transform:uppercase;}
+.eco-sub-row{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);display:flex;gap:1.8rem;}
+.eco-sub-item{display:flex;flex-direction:column;align-items:center;gap:.28rem;}
+.eco-sub-dot{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;}
+.eco-sub-lbl{font-size:.42rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(230,225,214,.22);}
+.eco-tagline{position:absolute;bottom:1%;left:50%;transform:translateX(-50%);font-size:.52rem;letter-spacing:.32em;text-transform:uppercase;color:rgba(201,168,76,.35);white-space:nowrap;}
+#eco-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+
+/* ─── PANEL 7 — STATS + FOOTER ──────────────────── */
+#p7{background:var(--bg);}
+.p7-inner{position:relative;z-index:10;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:6rem 4rem 2.5rem;}
+@media(max-width:768px){.p7-inner{padding:5rem 1.5rem 2rem;}}
+.top-line{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent);margin-bottom:2rem;}
+.stats-row{display:flex;gap:0;justify-content:center;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);}
+.stat-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.8rem 1rem;border-right:1px solid rgba(255,255,255,.05);}
+.stat-col:last-child{border-right:none;}
+.stat-v{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:700;line-height:1;color:var(--txt);}
+.stat-v.gd{background:linear-gradient(135deg,var(--gold),var(--gold-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.stat-l{font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--txt-d);text-align:center;margin-top:.3rem;line-height:1.6;}
+.cta-grid{display:grid;grid-template-columns:auto 1fr auto;gap:2.5rem;align-items:center;padding:1.8rem 0;}
+@media(max-width:900px){.cta-grid{grid-template-columns:1fr;gap:1.2rem;}}
+.cta-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(1.4rem,2.8vw,2.2rem);font-weight:600;line-height:1.25;color:var(--txt);}
+.cta-quote em{font-style:italic;background:linear-gradient(135deg,var(--gold),var(--gold-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.cta-btn{display:inline-flex;align-items:center;gap:.8rem;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(201,168,76,.45);padding:.85rem 1.4rem;text-decoration:none;transition:all .3s;white-space:nowrap;}
+.cta-btn:hover{background:rgba(201,168,76,.09);border-color:var(--gold);}
+.foot-row{display:flex;justify-content:space-between;align-items:center;padding-top:1.2rem;border-top:1px solid rgba(255,255,255,.05);flex-wrap:wrap;gap:.8rem;}
+.foot-links{display:flex;flex-wrap:wrap;gap:1.6rem;list-style:none;}
+.foot-links a{font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(230,225,214,.2);text-decoration:none;transition:color .3s;}
+.foot-links a:hover{color:var(--gold);}
+.foot-soc{display:flex;gap:.6rem;list-style:none;}
+.foot-soc a{width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;color:rgba(230,225,214,.28);text-decoration:none;font-size:.65rem;transition:all .3s;}
+.foot-soc a:hover{border-color:var(--gold);color:var(--gold);}
+.copy{font-size:.5rem;letter-spacing:.1em;color:rgba(230,225,214,.13);text-align:center;margin-top:.8rem;}
+
+/* ─── GRADIENT TEXT UTILS ────────────────────────── */
+.gwell{background:linear-gradient(135deg,#52b788,#95d5b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.gtech{background:linear-gradient(135deg,#60a5fa,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.gmedi{background:linear-gradient(135deg,#c084fc,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.gheal{background:linear-gradient(135deg,#22d3ee,#6ee7b7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ginfr{background:linear-gradient(135deg,#fbbf24,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ggold{background:linear-gradient(135deg,#c9a84c,#e8c97a,#c9a84c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* floating orb animations */
+.forb{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none;animation:float-y 10s ease-in-out infinite;}
 </style>
-{% endblock %}
+</head>
+<body>
 
-{% block content %}
+<!-- ── NAV ─────────────────────────────────────────── -->
+<nav id="nav">
+  <a href="/" class="nl">
+    <!-- N Logo -->
+    <svg class="n-svg" width="26" height="33" viewBox="-2 0 64 72" overflow="visible">
+      <rect x="0"  y="0" width="13" height="72"/>
+      <rect x="-2" y="0" width="17" height="7"/>
+      <rect x="-2" y="65" width="17" height="7"/>
+      <polygon points="13,0 25,0 49,72 37,72"/>
+      <rect x="49" y="0" width="13" height="72"/>
+      <rect x="47" y="0" width="17" height="7"/>
+      <rect x="47" y="65" width="17" height="7"/>
+    </svg>
+    <div style="display:flex;flex-direction:column;line-height:1;gap:.15rem;">
+      <span class="nl-name">NOVA CAPITAL</span>
+      <span class="nl-sub">Holdings</span>
+    </div>
+  </a>
 
-<!-- Fixed Panel Navigation Dots -->
-<div id="panel-nav">
-  <div class="panel-dot active" data-index="0" title="Home"></div>
-  <div class="panel-dot" data-index="1" title="Portfolio"></div>
-  <div class="panel-dot" data-index="2" title="Philosophy"></div>
-  <div class="panel-dot" data-index="3" title="Sectors"></div>
-  <div class="panel-dot" data-index="4" title="Connect"></div>
+  <ul class="nav-ul">
+    <li><a href="#" onclick="gotoPanel(6,1);return false;">Ecosystem</a></li>
+    <li><a href="{{ url_for('public.portfolio') }}">Companies</a></li>
+    <li><a href="{{ url_for('public.about') }}">Impact</a></li>
+    <li><a href="{{ url_for('public.contact') }}">Investors</a></li>
+  </ul>
+
+  <a href="{{ url_for('public.contact') }}" class="nav-cta">Connect</a>
+</nav>
+
+<!-- ── DOT NAV ──────────────────────────────────────── -->
+<div id="pnav">
+  <div class="pd on" data-i="0" title="Home"></div>
+  <div class="pd" data-i="1" title="Wellness"></div>
+  <div class="pd" data-i="2" title="Technology"></div>
+  <div class="pd" data-i="3" title="Media"></div>
+  <div class="pd" data-i="4" title="Health"></div>
+  <div class="pd" data-i="5" title="Infrastructure"></div>
+  <div class="pd" data-i="6" title="Ecosystem"></div>
+  <div class="pd" data-i="7" title="Contact"></div>
 </div>
 
-<!-- All Panels -->
-<div id="panels-container">
+<!-- ═══════════════════════════════════════════════════
+     PANEL 0 — HERO
+═══════════════════════════════════════════════════════ -->
+<section class="panel" id="p0">
+  <canvas id="hc"></canvas>
 
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- PANEL 0: HERO                               -->
-  <!-- ═══════════════════════════════════════════ -->
-  <section class="panel" id="panel-0" style="background:#030712;">
-    <!-- Subtle grid -->
-    <div class="absolute inset-0 opacity-[0.03]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:80px 80px;"></div>
+  <!-- Orbital N -->
+  <div class="hero-orb" id="hero-orb" style="width:440px;height:440px;">
+    <div class="orb-ring" style="width:440px;height:440px;border:1px solid rgba(201,168,76,.05);" id="orb-r1"></div>
+    <div class="orb-ring" style="width:300px;height:300px;border:1px solid rgba(201,168,76,.09);" id="orb-r2"></div>
+    <div class="orb-ring" style="width:180px;height:180px;border:1px solid rgba(201,168,76,.14);"></div>
+    <!-- Core -->
+    <div class="orb-core" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+      <svg class="n-svg" width="34" height="42" viewBox="-2 0 64 72" overflow="visible">
+        <rect x="0"  y="0" width="13" height="72"/>
+        <rect x="-2" y="0" width="17" height="7"/>
+        <rect x="-2" y="65" width="17" height="7"/>
+        <polygon points="13,0 25,0 49,72 37,72"/>
+        <rect x="49" y="0" width="13" height="72"/>
+        <rect x="47" y="0" width="17" height="7"/>
+        <rect x="47" y="65" width="17" height="7"/>
+      </svg>
+      <div class="orb-pulse"></div>
+      <div class="orb-pulse orb-pulse2"></div>
+    </div>
+    <!-- Orbit dot -->
+    <div style="position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px var(--gold);top:12px;left:50%;margin-left:-3px;"></div>
+  </div>
 
-    <div class="relative z-10 grid grid-cols-12 h-full px-12 pt-20" style="align-items:center;">
-      <!-- Left column -->
-      <div class="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col justify-center pr-8">
-        <p class="section-label mb-6" id="hero-eyebrow">Est. 2019 · Global Holdings</p>
-        <h1 id="hero-heading" class="font-black leading-[0.9] mb-8" style="font-size:clamp(3.5rem,8vw,7rem);color:#fff;">
-          NOVA<br>
-          <span class="gradient-text">CAPITAL</span><br>
-          HOLDINGS
-        </h1>
-        <p id="hero-sub" class="text-slate-400 max-w-sm mb-10 leading-relaxed" style="font-size:0.95rem;">
-          A next-generation investment firm deploying strategic capital across transformative technologies, sustainable energy, and emerging global markets.
-        </p>
-        <div id="hero-cta" class="flex items-center gap-4 flex-wrap">
-          <a href="{{ url_for('public.portfolio') }}" class="btn-primary px-7 py-3 rounded-lg text-sm">
-            Explore Portfolio
-          </a>
-          <a href="{{ url_for('auth.login') }}" class="btn-secondary px-7 py-3 rounded-lg text-sm">
-            Staff Portal
-          </a>
+  <div class="hero-wrap">
+    <div id="hero-copy">
+      <p class="hero-eyebrow" id="hero-ey">South Africa · Est. 2024</p>
+      <h1 class="hero-h1" id="hero-h1">Building<br>systems<br>that <em>outlive&nbsp;us.</em></h1>
+      <p class="hero-p" id="hero-p">We build, scale and operate a diverse ecosystem of companies and brands that elevate lives and shape the future.</p>
+      <div class="scroll-hint" id="hero-sh">Scroll to explore</div>
+    </div>
+    <div></div><!-- right col: orbital N sits behind -->
+  </div>
+
+  <div class="hero-coords" id="hero-co">26.2048° S, 28.0473° E &nbsp;·&nbsp; SOUTH AFRICA</div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PANEL 1 — WELLNESS
+═══════════════════════════════════════════════════════ -->
+<section class="panel" id="p1">
+  <!-- Floating orbs -->
+  <div class="forb" style="width:280px;height:280px;background:rgba(45,106,79,.22);top:-40px;right:-30px;animation-delay:-3s;"></div>
+  <div class="forb" style="width:180px;height:180px;background:rgba(82,183,136,.14);bottom:80px;left:60px;animation-delay:-7s;animation-duration:14s;"></div>
+  <!-- Tree SVG -->
+  <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.07;pointer-events:none;" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice">
+    <circle cx="530" cy="220" r="100" fill="#52b788"/>
+    <circle cx="900" cy="175" r="75" fill="#52b788"/>
+    <circle cx="700" cy="240" r="65" fill="#95d5b2" opacity=".6"/>
+    <path d="M720 800 L720 260 M680 380 Q590 280 530 240 M760 340 Q860 245 910 210 M700 500 Q600 450 500 430 M740 470 Q850 420 940 390" stroke="#52b788" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </svg>
+
+  <div class="wg" id="well-wg">
+    <div>
+      <div class="wl"><span class="wl-num">01</span><span>WORLD</span></div>
+      <h2 class="w-title gwell">WELLNESS</h2>
+      <p class="w-tag">Elevating mind, body and everyday living.</p>
+
+      <!-- 10 brands -->
+      <div class="brands-wrap" id="well-brands">
+        <span class="bchip"><span class="bchip-dot"></span>Bodhi Tree</span>
+        <span class="bchip"><span class="bchip-dot"></span>WildCurrent</span>
+        <span class="bchip"><span class="bchip-dot"></span>Root &amp; Ritual</span>
+        <span class="bchip"><span class="bchip-dot"></span>TerraNomad</span>
+        <span class="bchip"><span class="bchip-dot"></span>Aether Grove</span>
+        <span class="bchip"><span class="bchip-dot"></span>North Ember</span>
+        <span class="bchip"><span class="bchip-dot"></span>Sol &amp; Sage</span>
+        <span class="bchip"><span class="bchip-dot"></span>The Quiet Wild</span>
+        <span class="bchip"><span class="bchip-dot"></span>Hinterland Collective</span>
+        <span class="bchip"><span class="bchip-dot"></span>Shades of Jade</span>
+      </div>
+      <a href="{{ url_for('public.portfolio') }}" class="xbtn" style="color:rgba(82,183,136,.6);">Explore</a>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1.2rem;">
+      <div class="aside-box" style="border-color:rgba(82,183,136,.3);">
+        <strong>10 Brands · One Mission</strong>
+        Wellness for wherever you roam. The Wellness Collective curates brands that restore, energize, and ground — from retreats and rituals to everyday living.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+        <div class="stat-mini">
+          <div class="stat-mini-v gwell">10</div>
+          <div class="stat-mini-l">Active Brands</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-v gwell">1</div>
+          <div class="stat-mini-l">Holding Co.</div>
+        </div>
+      </div>
+      <div style="font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(82,183,136,.35);">The Wellness Collective (Pty) Ltd · Registered in SA</div>
+      <!-- side dots -->
+      <div style="display:flex;gap:.35rem;justify-content:flex-end;margin-top:.5rem;">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--w-well);display:inline-block;"></span>
+        <span style="width:5px;height:5px;border-radius:50%;background:rgba(82,183,136,.25);display:inline-block;"></span>
+        <span style="width:5px;height:5px;border-radius:50%;background:rgba(82,183,136,.25);display:inline-block;"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PANEL 2 — TECHNOLOGY
+═══════════════════════════════════════════════════════ -->
+<section class="panel" id="p2">
+  <div class="circ-grid"></div>
+  <!-- glowing circuit nodes -->
+  <div style="position:absolute;width:7px;height:7px;border-radius:50%;background:#60a5fa;box-shadow:0 0 18px #60a5fa;top:28%;right:22%;animation:shimmer 3s ease-in-out infinite;"></div>
+  <div style="position:absolute;width:5px;height:5px;border-radius:50%;background:#38bdf8;box-shadow:0 0 12px #38bdf8;top:55%;right:38%;animation:shimmer 3s ease-in-out infinite 1.4s;"></div>
+  <div style="position:absolute;width:4px;height:4px;border-radius:50%;background:#60a5fa;box-shadow:0 0 10px #60a5fa;top:70%;right:18%;animation:shimmer 3s ease-in-out infinite .7s;"></div>
+  <div style="position:absolute;width:4px;height:4px;border-radius:50%;background:#38bdf8;box-shadow:0 0 10px #38bdf8;top:40%;right:55%;animation:shimmer 3s ease-in-out infinite 2s;"></div>
+  <!-- circuit lines SVG -->
+  <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.08;pointer-events:none;" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice">
+    <path d="M900 200 H1100 V400 H1300" stroke="#60a5fa" stroke-width="1" fill="none"/>
+    <path d="M1000 300 H1200 V500" stroke="#38bdf8" stroke-width="1" fill="none"/>
+    <path d="M800 150 V350 H1050 V550" stroke="#60a5fa" stroke-width="1" fill="none"/>
+    <circle cx="900"  cy="200" r="4" fill="#60a5fa"/>
+    <circle cx="1100" cy="400" r="4" fill="#38bdf8"/>
+    <circle cx="800"  cy="350" r="4" fill="#60a5fa"/>
+    <circle cx="1050" cy="550" r="4" fill="#38bdf8"/>
+  </svg>
+
+  <div class="wg" id="tech-wg">
+    <div>
+      <div class="wl"><span class="wl-num">02</span><span>WORLD</span></div>
+      <h2 class="w-title gtech">TECH&shy;NOLOGY</h2>
+      <p class="w-tag">Building intelligent systems for a better tomorrow.</p>
+      <a href="{{ url_for('public.portfolio') }}" class="xbtn" style="color:rgba(96,165,250,.6);">Explore</a>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="ents" id="tech-ents">
+        <div class="ent">
+          <div class="ent-ico" style="background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <div>
+            <div class="ent-name" style="color:#60a5fa;">Metasoft (Pty) Ltd</div>
+            <div class="ent-desc">Technology Development &amp; Software Solutions</div>
+          </div>
+        </div>
+        <div class="ent">
+          <div class="ent-ico" style="background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div>
+            <div class="ent-name" style="color:#38bdf8;">Rolefit</div>
+            <div class="ent-desc">SaaS Product · Developed by Metasoft (Pty) Ltd</div>
+          </div>
+        </div>
+        <div class="ent">
+          <div class="ent-ico" style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div>
+            <div class="ent-name" style="color:var(--gold);">Buffalotech LLC · Wyoming, USA</div>
+            <div class="ent-desc">IP Holding · Technology &amp; Global Operations</div>
+          </div>
+        </div>
+      </div>
+      <div class="aside-box" style="border-color:rgba(96,165,250,.3);">
+        <strong>Code · Systems · Scale</strong>
+        From software to infrastructure, we build the engines of progress. Our tech arm develops SaaS products and holds global intellectual property through Buffalotech LLC.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PANEL 3 — MEDIA
+═══════════════════════════════════════════════════════ -->
+<section class="panel" id="p3">
+  <!-- Crowd silhouette -->
+  <div class="crowd"></div>
+  <!-- Stage lights -->
+  <div class="stage-light" style="top:0;left:calc(50% - 2px);width:4px;height:42%;background:linear-gradient(to bottom,rgba(192,132,252,.35),transparent);transform-origin:top center;"></div>
+  <div class="stage-light" style="top:0;left:calc(50% - 110px);width:2px;height:38%;background:linear-gradient(to bottom,rgba(244,114,182,.2),transparent);transform:rotate(-12deg);transform-origin:top center;"></div>
+  <div class="stage-light" style="top:0;left:calc(50% + 110px);width:2px;height:38%;background:linear-gradient(to bottom,rgba(192,132,252,.2),transparent);transform:rotate(12deg);transform-origin:top center;"></div>
+  <!-- Radial glow -->
+  <div style="position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.18),transparent 70%);pointer-events:none;"></div>
+
+  <div class="wg" id="medi-wg">
+    <div>
+      <div class="wl"><span class="wl-num">03</span><span>WORLD</span></div>
+      <h2 class="w-title gmedi">MEDIA</h2>
+      <p class="w-tag">Inspiring, connecting and informing.</p>
+      <a href="{{ url_for('public.portfolio') }}" class="xbtn" style="color:rgba(192,132,252,.6);">Explore</a>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="ents" id="medi-ents">
+        <div class="ent">
+          <div class="ent-ico" style="background:rgba(192,132,252,.1);border:1px solid rgba(192,132,252,.3);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          </div>
+          <div>
+            <div class="ent-name" style="color:#c084fc;">Nova Social Group (Pty) Ltd</div>
+            <div class="ent-desc">Media, Community &amp; Digital Platforms</div>
+          </div>
+        </div>
+        <div class="ent">
+          <div class="ent-ico" style="background:rgba(244,114,182,.1);border:1px solid rgba(244,114,182,.3);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          </div>
+          <div>
+            <div class="ent-name" style="color:#f472b6;">Contemporary Hippie</div>
+            <div class="ent-desc">Archival · (Pty) Ltd · Registered in SA</div>
+          </div>
+        </div>
+        <div class="ent">
+          <div class="ent-ico" style="background:rgba(192,132,252,.1);border:1px solid rgba(192,132,252,.3);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <div>
+            <div class="ent-name" style="color:#c084fc;">The Millennial</div>
+            <div class="ent-desc">Archival · (Pty) Ltd · Registered in SA</div>
+          </div>
+        </div>
+        <div class="ent">
+          <div class="ent-ico" style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+          <div>
+            <div class="ent-name" style="color:var(--gold);">Credit Compass</div>
+            <div class="ent-desc">Financial Education Platform · (Pty) Ltd</div>
+          </div>
+        </div>
+      </div>
+      <div class="aside-box" style="border-color:rgba(192,132,252,.3);">
+        <strong>Stories Move People</strong>
+        We create platforms that amplify voices and build communities. From archival media to financial literacy — our media arm informs, connects, and inspires.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PANEL 4 — HEALTH
+═══════════════════════════════════════════════════════ -->
+<section class="panel" id="p4">
+  <!-- Human + DNA SVG -->
+  <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.11;pointer-events:none;" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice">
+    <!-- Human figure -->
+    <ellipse cx="820" cy="125" rx="42" ry="52" stroke="#22d3ee" stroke-width="1.5" fill="none"/>
+    <path d="M790 177 Q820 155 850 177 L865 345 Q838 375 820 375 Q802 375 775 345 Z" stroke="#22d3ee" stroke-width="1.5" fill="none"/>
+    <path d="M790 195 Q735 275 725 375" stroke="#22d3ee" stroke-width="1.5" fill="none"/>
+    <path d="M850 195 Q905 275 915 375" stroke="#22d3ee" stroke-width="1.5" fill="none"/>
+    <path d="M796 375 Q790 545 788 675" stroke="#22d3ee" stroke-width="1.5" fill="none"/>
+    <path d="M844 375 Q850 545 852 675" stroke="#22d3ee" stroke-width="1.5" fill="none"/>
+    <!-- Aura -->
+    <ellipse cx="820" cy="400" rx="115" ry="270" stroke="rgba(34,211,238,.4)" stroke-width="1" fill="none"/>
+    <!-- DNA helix -->
+    <path d="M1080 80 Q1100 180 1080 280 Q1060 380 1080 480 Q1100 580 1080 680" stroke="#22d3ee" stroke-width="1" fill="none" stroke-dasharray="5 4"/>
+    <path d="M1120 80 Q1100 180 1120 280 Q1140 380 1120 480 Q1100 580 1120 680" stroke="#6ee7b7" stroke-width="1" fill="none" stroke-dasharray="5 4"/>
+    <line x1="1080" y1="130" x2="1120" y2="130" stroke="#22d3ee" stroke-width=".7"/>
+    <line x1="1080" y1="230" x2="1120" y2="230" stroke="#22d3ee" stroke-width=".7"/>
+    <line x1="1080" y1="330" x2="1120" y2="330" stroke="#22d3ee" stroke-width=".7"/>
+    <line x1="1080" y1="430" x2="1120" y2="430" stroke="#22d3ee" stroke-width=".7"/>
+    <line x1="1080" y1="530" x2="1120" y2="530" stroke="#22d3ee" stroke-width=".7"/>
+    <line x1="1080" y1="630" x2="1120" y2="630" stroke="#22d3ee" stroke-width=".7"/>
+  </svg>
+
+  <div class="wg" id="heal-wg">
+    <div>
+      <div class="wl"><span class="wl-num">04</span><span>WORLD</span></div>
+      <h2 class="w-title gheal">HEALTH</h2>
+      <p class="w-tag">Science-backed wellness. Optimizing life.</p>
+      <a href="{{ url_for('public.portfolio') }}" class="xbtn" style="color:rgba(34,211,238,.6);">Explore</a>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="ents" id="heal-ents">
+        <div class="ent">
+          <div class="ent-ico" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          </div>
+          <div>
+            <div class="ent-name" style="color:#22d3ee;">Healthentic (Pty) Ltd</div>
+            <div class="ent-desc">Health &amp; Wellness Platform · Rebrand Consideration</div>
+          </div>
         </div>
       </div>
 
-      <!-- Center: Wireframe cube -->
-      <div class="hidden lg:flex col-span-12 lg:col-span-4 items-center justify-center">
-        <div id="cube-wrap" style="width:320px;height:320px;position:relative;">
-          <svg id="hero-cube" viewBox="0 0 320 320" width="320" height="320">
-            <!-- Back face -->
-            <polygon class="cube-line-dim" points="160,40 260,90 260,220 160,270"/>
-            <polygon class="cube-line-dim" points="60,90 160,40 160,270 60,220"/>
-            <!-- Axes / diagonals -->
-            <line class="cube-line-dim" x1="160" y1="155" x2="260" y2="90"/>
-            <line class="cube-line-dim" x1="160" y1="155" x2="60" y2="90"/>
-            <line class="cube-line-dim" x1="160" y1="155" x2="160" y2="40"/>
-            <!-- Front face -->
-            <polygon class="cube-line" points="160,40 260,90 260,220 160,270 60,220 60,90"/>
-            <!-- Vertical center -->
-            <line class="cube-line" x1="160" y1="40" x2="160" y2="270" stroke-dasharray="6 4"/>
-            <!-- Horizontal center -->
-            <line class="cube-line" x1="60" y1="155" x2="260" y2="155" stroke-dasharray="6 4"/>
-            <!-- Diagonal lines -->
-            <line class="cube-line" x1="60" y1="90" x2="260" y2="220"/>
-            <line class="cube-line" x1="260" y1="90" x2="60" y2="220"/>
-            <!-- Center point -->
-            <circle cx="160" cy="155" r="5" fill="#f59e0b" opacity="0.9"/>
-            <circle cx="160" cy="155" r="12" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.3"/>
-            <!-- Labels -->
-            <text x="268" y="158" fill="rgba(245,158,11,0.7)" font-size="9" font-family="monospace" letter-spacing="1">AUM</text>
-            <text x="40" y="86" fill="rgba(245,158,11,0.7)" font-size="9" font-family="monospace" letter-spacing="1">YOY</text>
-            <text x="148" y="288" fill="rgba(245,158,11,0.7)" font-size="9" font-family="monospace" letter-spacing="1">INTL</text>
-          </svg>
-          <!-- Rotating ring -->
-          <div id="cube-ring" style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(245,158,11,0.08);"></div>
-        </div>
+      <div class="aside-box" style="border-color:rgba(34,211,238,.3);">
+        <strong>Health Is Wealth</strong>
+        Combining science, data and humanity to help people live longer, healthier lives. Healthentic sits at the intersection of technology and human wellbeing.
       </div>
 
-      <!-- Right column: live stats -->
-      <div class="hidden xl:flex col-span-12 xl:col-span-4 flex-col justify-center pl-8">
-        <p class="section-label mb-6">Portfolio Metrics</p>
-        <div class="space-y-6">
-          <div>
-            <div class="text-white font-black mb-1" style="font-size:2.2rem;" id="stat-aum">$21.4B</div>
-            <div class="text-slate-500 text-xs tracking-widest uppercase">Assets Under Management</div>
-          </div>
-          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
-          <div>
-            <div class="text-white font-black mb-1" style="font-size:2.2rem;">{{ public_companies|length }}</div>
-            <div class="text-slate-500 text-xs tracking-widest uppercase">Active Holdings</div>
-          </div>
-          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
-          <div>
-            <div class="text-white font-black mb-1" style="font-size:2.2rem;">{{ sectors|length }}</div>
-            <div class="text-slate-500 text-xs tracking-widest uppercase">Sectors of Operation</div>
-          </div>
-          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
-          <div>
-            <div class="gradient-text font-black mb-1" style="font-size:2.2rem;">+143%</div>
-            <div class="text-slate-500 text-xs tracking-widest uppercase">Average Portfolio Return</div>
-          </div>
+      <div style="padding:1.1rem;border:1px solid rgba(34,211,238,.1);background:rgba(34,211,238,.03);border-radius:2px;margin-top:.5rem;">
+        <div style="font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(34,211,238,.45);margin-bottom:.45rem;">Platform Status</div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <div style="width:6px;height:6px;border-radius:50%;background:#22d3ee;animation:shimmer 2s ease-in-out infinite;box-shadow:0 0 8px #22d3ee;"></div>
+          <span style="font-size:.72rem;color:rgba(230,225,214,.6);">Active · Rebrand In Progress</span>
         </div>
       </div>
     </div>
+  </div>
+</section>
 
-    <!-- Bottom: Marquee ticker -->
-    <div class="absolute bottom-0 left-0 right-0" style="border-top:1px solid rgba(255,255,255,0.06);overflow:hidden;height:36px;">
-      <div class="marquee-track h-full items-center flex">
-        {% set ticker_items = ['NovaTech Systems · +142%', 'Quantum Energy Corp · +89%', 'BioNova Pharma · +67%', 'MetaVerse Realty · +215%', 'Arctic Logistics · +54%', 'DeepSea Mining · +12%'] %}
-        {% for item in ticker_items + ticker_items %}
-        <span class="text-xs tracking-widest uppercase mx-8" style="color:rgba(245,158,11,0.5);">{{ item }}</span>
-        <span class="text-xs mx-4" style="color:rgba(255,255,255,0.1);">◆</span>
-        {% endfor %}
-      </div>
+
+<!-- ═══════════════════════════════════════════════════
+     PANEL 5 — INFRASTRUCTURE
+═══════════════════════════════════════════════════════ -->
+<section class="panel" id="p5">
+  <div class="city-sky"></div>
+  <div class="city-glow"></div>
+  <!-- Perspective road SVG -->
+  <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.18;pointer-events:none;" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice">
+    <line x1="720" y1="800" x2="80" y2="380"  stroke="#f59e0b" stroke-width="1"/>
+    <line x1="720" y1="800" x2="1360" y2="380" stroke="#f59e0b" stroke-width="1"/>
+    <line x1="720" y1="800" x2="260" y2="340" stroke="rgba(245,158,11,.5)" stroke-width=".6"/>
+    <line x1="720" y1="800" x2="1180" y2="340" stroke="rgba(245,158,11,.5)" stroke-width=".6"/>
+    <line x1="720" y1="800" x2="460" y2="310" stroke="rgba(245,158,11,.25)" stroke-width=".4"/>
+    <line x1="720" y1="800" x2="980" y2="310" stroke="rgba(245,158,11,.25)" stroke-width=".4"/>
+  </svg>
+
+  <div class="wg" id="infr-wg">
+    <div>
+      <div class="wl"><span class="wl-num">05</span><span>WORLD</span></div>
+      <h2 class="w-title ginfr">INFRA&shy;STRUCTURE</h2>
+      <p class="w-tag">Smarter spaces. Stronger futures.</p>
+      <a href="{{ url_for('public.portfolio') }}" class="xbtn" style="color:rgba(251,191,36,.6);">Explore</a>
     </div>
 
-    <!-- Scroll hint -->
-    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
-      <span class="text-xs tracking-widest uppercase text-white">Scroll</span>
-      <div style="width:1px;height:32px;background:linear-gradient(to bottom,#f59e0b,transparent);"></div>
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- PANEL 1: PORTFOLIO NAVIGATOR                -->
-  <!-- ═══════════════════════════════════════════ -->
-  <section class="panel" id="panel-1" style="background:#030712;transform:translateY(100%);">
-    <div class="absolute inset-0 opacity-[0.02]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:60px 60px;"></div>
-
-    <div class="relative z-10 h-full grid grid-cols-12 px-12 pt-24 pb-16" style="align-items:start;overflow:hidden;">
-      <!-- Left: TOC -->
-      <div class="col-span-3 split-left pr-8 h-full flex flex-col justify-between py-4">
-        <div>
-          <p class="section-label mb-6">Navigate Our Subsidiaries</p>
-          <div class="space-y-3" id="co-toc">
-            {% for c in public_companies %}
-            <button class="co-toc-btn block text-left text-sm font-medium transition-all duration-300 py-1 text-slate-500 hover:text-white"
-                    data-index="{{ loop.index0 }}">
-              {{ "%02d"|format(loop.index) }}. {{ c.name }}
-            </button>
-            {% endfor %}
-          </div>
-        </div>
-        <a href="{{ url_for('public.portfolio') }}" class="text-xs tracking-widest uppercase text-amber-400 hover:text-amber-300 flex items-center gap-2">
-          View All
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-        </a>
-      </div>
-
-      <!-- Center: Company detail -->
-      <div class="col-span-5 px-8 h-full flex flex-col justify-center" id="co-detail">
-        {% for c in public_companies %}
-        <div class="co-detail-pane {% if not loop.first %}hidden{% endif %}" data-index="{{ loop.index0 }}">
-          <p class="section-label mb-4">{{ c.sector }}</p>
-          <h2 class="text-white font-black leading-tight mb-4" style="font-size:clamp(2rem,4vw,3.5rem);">{{ c.name }}</h2>
-          <p class="text-slate-400 leading-relaxed mb-8 max-w-md" style="font-size:0.9rem;">{{ c.description }}</p>
-          <div class="grid grid-cols-2 gap-4 mb-8">
-            <div>
-              <div class="text-white font-black text-2xl">{{ c.ownership }}%</div>
-              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Ownership</div>
-            </div>
-            <div>
-              <div class="gradient-text font-black text-2xl">{{ c.growth or 'N/A' }}</div>
-              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Growth</div>
-            </div>
-            <div>
-              <div class="text-white font-black text-2xl">
-                {% if c.valuation >= 1000000000 %}${{ "%.1f"|format(c.valuation/1000000000) }}B
-                {% else %}${{ "%.0f"|format(c.valuation/1000000) }}M{% endif %}
-              </div>
-              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Valuation</div>
-            </div>
-            <div>
-              <div class="text-white font-black text-2xl">{{ c.employees or '—' }}</div>
-              <div class="text-slate-600 text-xs tracking-widest uppercase mt-1">Employees</div>
-            </div>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="text-xs px-3 py-1 rounded-sm font-medium tracking-widest uppercase" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">{{ c.status }}</span>
-            <span class="text-slate-600 text-xs">{{ c.headquarters or '' }}</span>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-
-      <!-- Right: Visual index -->
-      <div class="col-span-4 pl-8 split-left h-full flex flex-col justify-center gap-3 overflow-y-auto">
-        <p class="section-label mb-2">Holdings Network</p>
-        {% for c in public_companies %}
-        <div class="co-row p-3 cursor-pointer co-card-btn" data-index="{{ loop.index0 }}">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="text-white text-sm font-semibold mb-0.5">{{ c.name }}</div>
-              <div class="text-slate-500 text-xs">{{ c.sector }}</div>
-            </div>
-            <div class="text-right">
-              <div class="gradient-text text-sm font-bold">{{ c.growth or '—' }}</div>
-              <div class="text-slate-600 text-xs">YoY</div>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- PANEL 2: PHILOSOPHY                         -->
-  <!-- ═══════════════════════════════════════════ -->
-  <section class="panel" id="panel-2" style="background:#030712;transform:translateY(100%);">
-    <div class="absolute inset-0 opacity-[0.02]" style="background-image:radial-gradient(circle,#f59e0b 1px,transparent 1px);background-size:60px 60px;"></div>
-
-    <div class="relative z-10 grid grid-cols-12 px-12 h-full" style="align-items:center;">
-      <!-- Left -->
-      <div class="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col justify-center">
-        <p class="section-label mb-6">Our Philosophy</p>
-        <div id="phil-heading" class="font-black leading-[0.9] mb-8" style="font-size:clamp(3rem,6vw,5.5rem);color:#fff;">
-          CAPITAL<br>THAT<br><span class="gradient-text">CREATES</span><br>LEGACY
-        </div>
-        <a href="{{ url_for('public.about') }}" class="btn-secondary px-7 py-3 rounded-lg text-sm w-fit">
-          Our Story
-        </a>
-      </div>
-
-      <!-- Right: manifesto lines -->
-      <div class="hidden lg:block col-span-12 lg:col-span-7 xl:col-span-8 pl-16">
-        <div class="space-y-8" id="phil-lines">
-          <div class="phil-line" style="opacity:0;transform:translateX(40px);">
-            <div class="text-slate-700 text-xs tracking-widest uppercase mb-2">01 / Investment Thesis</div>
-            <div class="text-white font-medium leading-relaxed" style="font-size:1.1rem;">
-              We identify transformative companies at the intersection of emerging technology and real-world impact — then deploy capital with conviction and patience.
-            </div>
-          </div>
-          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
-          <div class="phil-line" style="opacity:0;transform:translateX(40px);">
-            <div class="text-slate-700 text-xs tracking-widest uppercase mb-2">02 / Value Creation</div>
-            <div class="text-white font-medium leading-relaxed" style="font-size:1.1rem;">
-              Beyond capital, we bring operational expertise, global networks, and strategic guidance to every holding in our portfolio.
-            </div>
-          </div>
-          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
-          <div class="phil-line" style="opacity:0;transform:translateX(40px);">
-            <div class="text-slate-700 text-xs tracking-widest uppercase mb-2">03 / Long-Term Vision</div>
-            <div class="text-white font-medium leading-relaxed" style="font-size:1.1rem;">
-              We build enduring enterprises. Our investment horizon extends beyond quarters — we measure success in decades, not cycles.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- PANEL 3: SECTORS                            -->
-  <!-- ═══════════════════════════════════════════ -->
-  <section class="panel" id="panel-3" style="background:#030712;transform:translateY(100%);">
-    <div class="absolute inset-0 opacity-[0.025]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:40px 40px;"></div>
-
-    <div class="relative z-10 px-12 h-full flex flex-col justify-center">
-      <p class="section-label mb-4">Sectors of Operation</p>
-
-      <!-- Big sector grid -->
-      <div id="sectors-grid" class="grid grid-cols-2 md:grid-cols-3 gap-px" style="background:rgba(255,255,255,0.06);">
-        {% set sector_data = [
-          ('Technology', 'Artificial intelligence, enterprise software, cybersecurity', '01'),
-          ('Clean Energy', 'Fusion, solar, grid storage, zero-carbon industrial', '02'),
-          ('Healthcare', 'Gene therapy, precision medicine, biotech platforms', '03'),
-          ('Real Estate', 'Digital-physical convergence, tokenised property', '04'),
-          ('Logistics', 'Autonomous supply chain, last-mile robotics', '05'),
-          ('Resources', 'Critical minerals, deep-sea extraction, sustainability', '06'),
-        ] %}
-        {% for name, desc, num in sector_data %}
-        <div class="sector-cell p-8 flex flex-col justify-between" style="background:#030712;transition:background 0.3s;" onmouseenter="this.style.background='rgba(245,158,11,0.03)'" onmouseleave="this.style.background='#030712'">
-          <div class="text-slate-700 text-xs font-mono mb-4">{{ num }}</div>
-          <div>
-            <div class="text-white font-bold text-lg mb-2">{{ name }}</div>
-            <div class="text-slate-500 text-sm leading-relaxed">{{ desc }}</div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- PANEL 4: CONNECT / PORTAL                   -->
-  <!-- ═══════════════════════════════════════════ -->
-  <section class="panel" id="panel-4" style="background:#030712;transform:translateY(100%);">
-    <div class="relative z-10 grid grid-cols-12 px-12 h-full" style="align-items:center;">
-      <!-- Left: contact info -->
-      <div class="col-span-12 lg:col-span-5 split-left pr-12 flex flex-col justify-center h-full py-24">
-        <p class="section-label mb-6">Get in Touch</p>
-        <h2 class="font-black leading-[0.9] mb-8 text-white" style="font-size:clamp(2.5rem,5vw,4.5rem);">
-          LET'S BUILD<br>SOMETHING<br><span class="gradient-text">LASTING.</span>
-        </h2>
-        <div class="space-y-6 mb-10">
-          <div>
-            <div class="text-slate-600 text-xs tracking-widest uppercase mb-1">Investor Relations</div>
-            <div class="text-slate-300 text-sm">invest@novacapital.com</div>
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="ents" id="infr-ents">
+        <div class="ent">
+          <div class="ent-ico" style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </div>
           <div>
-            <div class="text-slate-600 text-xs tracking-widest uppercase mb-1">General Enquiries</div>
-            <div class="text-slate-300 text-sm">hello@novacapital.com</div>
-          </div>
-          <div>
-            <div class="text-slate-600 text-xs tracking-widest uppercase mb-1">Global Headquarters</div>
-            <div class="text-slate-300 text-sm">New York · London · Singapore · Dubai</div>
+            <div class="ent-name" style="color:#fbbf24;">Cyberprop (Pty) Ltd</div>
+            <div class="ent-desc">PropTech &amp; Digital Infrastructure · Registered in SA</div>
           </div>
         </div>
-        <a href="{{ url_for('public.contact') }}" class="btn-primary px-7 py-3 rounded-lg text-sm w-fit">
-          Send a Message
-        </a>
       </div>
 
-      <!-- Right: portal CTA -->
-      <div class="hidden lg:flex col-span-12 lg:col-span-7 pl-12 flex-col justify-center h-full py-24">
-        <p class="section-label mb-6">Internal Access</p>
-        <div style="border:1px solid rgba(255,255,255,0.06);padding:3rem;position:relative;overflow:hidden;">
-          <!-- Scan line animation -->
-          <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
-            <div id="scan-line" style="position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.4),transparent);"></div>
-          </div>
-          <div class="text-slate-600 text-xs tracking-widest uppercase mb-6">Secure Portal</div>
-          <h3 class="text-white font-black text-3xl mb-4">Staff &amp; Admin<br>Dashboard</h3>
-          <p class="text-slate-500 text-sm leading-relaxed mb-8 max-w-md">
-            Access the internal management portal to view financial reports, manage portfolio companies, and control sensitive documentation.
-          </p>
-          <div class="flex items-center gap-2 text-xs text-slate-600 mb-8">
-            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-            <span>Secured with enterprise-grade encryption</span>
-          </div>
-          <a href="{{ url_for('auth.login') }}" class="btn-secondary px-7 py-3 rounded-lg text-sm inline-flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-            Access Portal
-          </a>
-        </div>
+      <div class="aside-box" style="border-color:rgba(251,191,36,.3);">
+        <strong>Foundations For Future</strong>
+        Building the physical and digital infrastructure that powers progress. From PropTech to smart real estate — we lay the foundation for a connected future.
+      </div>
 
-        <!-- Footer bar -->
-        <div class="flex items-center justify-between mt-8 pt-8" style="border-top:1px solid rgba(255,255,255,0.06);">
-          <span class="text-slate-600 text-xs">© 2024 Nova Capital Holdings</span>
-          <div class="flex items-center gap-6">
-            <a href="{{ url_for('public.about') }}" class="text-slate-600 hover:text-white text-xs transition-colors">About</a>
-            <a href="{{ url_for('public.portfolio') }}" class="text-slate-600 hover:text-white text-xs transition-colors">Portfolio</a>
-            <a href="{{ url_for('public.contact') }}" class="text-slate-600 hover:text-white text-xs transition-colors">Contact</a>
-          </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.5rem;">
+        <div style="padding:.9rem;border:1px solid rgba(251,191,36,.14);border-radius:2px;">
+          <div style="font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(251,191,36,.4);margin-bottom:.3rem;">Focus</div>
+          <div style="font-size:.72rem;color:rgba(230,225,214,.65);">PropTech &amp; Digital Real Estate</div>
+        </div>
+        <div style="padding:.9rem;border:1px solid rgba(251,191,36,.14);border-radius:2px;">
+          <div style="font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(251,191,36,.4);margin-bottom:.3rem;">Scope</div>
+          <div style="font-size:.72rem;color:rgba(230,225,214,.65);">South Africa</div>
         </div>
       </div>
     </div>
-  </section>
-
-</div><!-- /#panels-container -->
-{% endblock %}
+  </div>
+</section>
 
 
-{% block extra_scripts %}
+<!-- ═══════════════════════════════════════════════════
+     PANEL 6 — ECOSYSTEM
+═══════════════════════════════════════════════════════ -->
+<section class="panel" id="p6">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,168,76,.07) 0%,transparent 68%);pointer-events:none;"></div>
+
+  <div class="eco-wrap" id="eco-wrap">
+    <!-- Left copy -->
+    <div>
+      <div class="wl" style="margin-bottom:.4rem;"><span class="wl-num">06</span><span style="color:rgba(230,225,214,.18);">THE</span></div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,5vw,4.2rem);font-weight:700;line-height:.88;background:linear-gradient(135deg,var(--gold),var(--gold-l),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1rem;">ECOSYSTEM</h2>
+      <p style="font-size:.83rem;color:var(--txt-d);line-height:1.85;max-width:270px;margin-bottom:2rem;">All connected. Stronger together. Limitless potential.</p>
+      <a href="{{ url_for('public.portfolio') }}" class="cta-btn" style="font-size:.6rem;">
+        View Ecosystem Map
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <!-- sub labels -->
+      <div style="margin-top:2.5rem;display:flex;flex-direction:column;gap:.6rem;">
+        <div style="font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(201,168,76,.35);">ONE HOLDING. MULTIPLE BUSINESSES.</div>
+        <div style="font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(201,168,76,.25);">GLOBAL PROTECTION. LIMITLESS POTENTIAL.</div>
+      </div>
+    </div>
+
+    <!-- Ecosystem orbital map -->
+    <div class="eco-map" id="eco-map">
+      <!-- SVG connector lines -->
+      <svg id="eco-svg" viewBox="0 0 600 420">
+        <!-- lines from center (300,210) to each node -->
+        <line x1="300" y1="210" x2="300" y2="60"  stroke="rgba(82,183,136,.25)"  stroke-width="1" stroke-dasharray="4 3"/>
+        <line x1="300" y1="210" x2="448" y2="128" stroke="rgba(96,165,250,.25)"  stroke-width="1" stroke-dasharray="4 3"/>
+        <line x1="300" y1="210" x2="420" y2="320" stroke="rgba(192,132,252,.25)" stroke-width="1" stroke-dasharray="4 3"/>
+        <line x1="300" y1="210" x2="180" y2="320" stroke="rgba(34,211,238,.25)"  stroke-width="1" stroke-dasharray="4 3"/>
+        <line x1="300" y1="210" x2="152" y2="128" stroke="rgba(251,191,36,.25)"  stroke-width="1" stroke-dasharray="4 3"/>
+      </svg>
+
+      <!-- Rings -->
+      <div class="eco-ring-el" style="width:320px;height:320px;border-color:rgba(255,255,255,.04);animation:spin-cw 35s linear infinite;"></div>
+      <div class="eco-ring-el" style="width:210px;height:210px;border-color:rgba(255,255,255,.06);"></div>
+
+      <!-- Center N node -->
+      <div class="eco-center-node" id="eco-c">
+        <svg class="n-svg" width="28" height="35" viewBox="-2 0 64 72" overflow="visible">
+          <rect x="0"  y="0" width="13" height="72"/>
+          <rect x="-2" y="0" width="17" height="7"/>
+          <rect x="-2" y="65" width="17" height="7"/>
+          <polygon points="13,0 25,0 49,72 37,72"/>
+          <rect x="49" y="0" width="13" height="72"/>
+          <rect x="47" y="0" width="17" height="7"/>
+          <rect x="47" y="65" width="17" height="7"/>
+        </svg>
+      </div>
+
+      <!-- WELLNESS — top center -->
+      <div class="eco-node" style="top:calc(50% - 165px);left:50%;transform:translateX(-50%);">
+        <div class="eco-nd" style="background:rgba(82,183,136,.1);border-color:rgba(82,183,136,.45);color:#52b788;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <span class="eco-nl" style="color:#52b788;">Wellness</span>
+      </div>
+
+      <!-- TECHNOLOGY — top right -->
+      <div class="eco-node" style="top:calc(50% - 82px);left:calc(50% + 148px);">
+        <div class="eco-nd" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.45);color:#60a5fa;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <span class="eco-nl" style="color:#60a5fa;">Technology</span>
+      </div>
+
+      <!-- MEDIA — bottom right -->
+      <div class="eco-node" style="top:calc(50% + 95px);left:calc(50% + 118px);">
+        <div class="eco-nd" style="background:rgba(192,132,252,.1);border-color:rgba(192,132,252,.45);color:#c084fc;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10"/></svg>
+        </div>
+        <span class="eco-nl" style="color:#c084fc;">Media</span>
+      </div>
+
+      <!-- HEALTH — bottom left -->
+      <div class="eco-node" style="top:calc(50% + 95px);left:calc(50% - 168px);">
+        <div class="eco-nd" style="background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.45);color:#22d3ee;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        </div>
+        <span class="eco-nl" style="color:#22d3ee;">Health</span>
+      </div>
+
+      <!-- INFRASTRUCTURE — top left -->
+      <div class="eco-node" style="top:calc(50% - 82px);left:calc(50% - 196px);">
+        <div class="eco-nd" style="background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.45);color:#fbbf24;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <span class="eco-nl" style="color:#fbbf24;">Infrastructure</span>
+      </div>
+
+      <!-- Sub-nodes row -->
+      <div class="eco-sub-row">
+        <div class="eco-sub-item">
+          <div class="eco-sub-dot"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(230,225,214,.35)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+          <span class="eco-sub-lbl">Strategy</span>
+        </div>
+        <div class="eco-sub-item">
+          <div class="eco-sub-dot"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(230,225,214,.35)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <span class="eco-sub-lbl">Data</span>
+        </div>
+        <div class="eco-sub-item">
+          <div class="eco-sub-dot"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(230,225,214,.35)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <span class="eco-sub-lbl">People</span>
+        </div>
+        <div class="eco-sub-item">
+          <div class="eco-sub-dot"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(230,225,214,.35)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          <span class="eco-sub-lbl">Capital</span>
+        </div>
+        <div class="eco-sub-item">
+          <div class="eco-sub-dot"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(230,225,214,.35)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          <span class="eco-sub-lbl">Impact</span>
+        </div>
+      </div>
+
+      <div class="eco-tagline">· · · One Ecosystem. Endless Impact. · · ·</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PANEL 7 — STATS + FOOTER
+═══════════════════════════════════════════════════════ -->
+<section class="panel" id="p7">
+  <div class="p7-inner">
+    <div class="top-line"></div>
+
+    <!-- Stats -->
+    <div class="stats-row" id="stats-r">
+      <div class="stat-col">
+        <div style="display:flex;align-items:flex-start;gap:.05rem;">
+          <span class="stat-v">14</span><span style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--gold);margin-top:.3rem;">+</span>
+        </div>
+        <div class="stat-l">Companies<br>And Growing</div>
+      </div>
+      <div class="stat-col">
+        <span class="stat-v">5</span>
+        <div class="stat-l">Core<br>Verticals</div>
+      </div>
+      <div class="stat-col">
+        <div style="display:flex;align-items:flex-start;gap:.05rem;">
+          <span class="stat-v">1000</span><span style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--gold);margin-top:.3rem;">+</span>
+        </div>
+        <div class="stat-l">People<br>Empowered</div>
+      </div>
+      <div class="stat-col">
+        <span class="stat-v ggold">GLOBAL</span>
+        <div class="stat-l">Mindset<br>Local Impact</div>
+      </div>
+      <div class="stat-col">
+        <span class="stat-v ggold">FUTURE</span>
+        <div class="stat-l">Focused<br>Always</div>
+      </div>
+    </div>
+
+    <!-- CTA block -->
+    <div class="cta-grid" id="cta-b">
+      <!-- Logo -->
+      <div style="display:flex;align-items:center;gap:.7rem;">
+        <svg class="n-svg" width="24" height="30" viewBox="-2 0 64 72" overflow="visible">
+          <rect x="0"  y="0" width="13" height="72"/>
+          <rect x="-2" y="0" width="17" height="7"/>
+          <rect x="-2" y="65" width="17" height="7"/>
+          <polygon points="13,0 25,0 49,72 37,72"/>
+          <rect x="49" y="0" width="13" height="72"/>
+          <rect x="47" y="0" width="17" height="7"/>
+          <rect x="47" y="65" width="17" height="7"/>
+        </svg>
+        <div style="display:flex;flex-direction:column;line-height:1;gap:.15rem;">
+          <span style="font-family:'Cormorant Garamond',serif;font-size:.8rem;font-weight:700;color:var(--txt);letter-spacing:.12em;">NOVA</span>
+          <span style="font-size:.48rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);">Capital Holdings</span>
+        </div>
+      </div>
+      <!-- Quote -->
+      <p class="cta-quote">
+        The future is not something we wait for.<br>
+        It's something we <em>build together.</em>
+      </p>
+      <!-- Button -->
+      <a href="{{ url_for('public.contact') }}" class="cta-btn">
+        Let's Build What<br>Outlives Us
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <!-- Footer links -->
+    <div class="foot-row">
+      <ul class="foot-links">
+        <li><a href="{{ url_for('public.about') }}">About Nova</a></li>
+        <li><a href="{{ url_for('public.portfolio') }}">Our Ecosystem</a></li>
+        <li><a href="{{ url_for('public.portfolio') }}">Companies</a></li>
+        <li><a href="{{ url_for('public.contact') }}">Investors</a></li>
+        <li><a href="{{ url_for('public.about') }}">Impact</a></li>
+        <li><a href="{{ url_for('public.contact') }}">Careers</a></li>
+        <li><a href="{{ url_for('public.contact') }}">Contact</a></li>
+        <li><a href="{{ url_for('auth.login') }}">Staff Portal</a></li>
+      </ul>
+      <ul class="foot-soc">
+        <li><a href="#" title="LinkedIn">in</a></li>
+        <li><a href="#" title="X (Twitter)">𝕏</a></li>
+        <li><a href="#" title="Instagram">◎</a></li>
+        <li><a href="#" title="YouTube">▶</a></li>
+      </ul>
+    </div>
+
+    <p class="copy">© 2024 Nova Capital Holdings (Pty) Ltd · All rights reserved · Registered in South Africa · US entities registered in Wyoming, USA</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════ -->
 <script>
 gsap.registerPlugin(Observer);
 
+/* ── PARTICLE CANVAS (hero) ───────────────────────── */
+(function(){
+  const cv = document.getElementById('hc');
+  if (!cv) return;
+  const cx = cv.getContext('2d');
+  let W, H, pts;
+
+  function resize(){
+    W = cv.width  = window.innerWidth;
+    H = cv.height = window.innerHeight;
+  }
+
+  function mkPts(){
+    pts = [];
+    const n = Math.floor((W * H) / 7500);
+    for (let i = 0; i < n; i++){
+      const gold = Math.random() < .12;
+      pts.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: Math.random() * (gold ? 1.6 : 1.1) + .2,
+        vx: (Math.random()-.5) * .12, vy: (Math.random()-.5) * .12,
+        a: Math.random() * .55 + .08,
+        gold,
+      });
+    }
+  }
+
+  function draw(){
+    cx.clearRect(0,0,W,H);
+    // subtle nebula
+    const g = cx.createRadialGradient(W*.5,H*.5,0,W*.5,H*.5,W*.45);
+    g.addColorStop(0,'rgba(201,168,76,.035)');
+    g.addColorStop(1,'transparent');
+    cx.fillStyle = g; cx.fillRect(0,0,W,H);
+
+    pts.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if(p.x<0) p.x=W; if(p.x>W) p.x=0;
+      if(p.y<0) p.y=H; if(p.y>H) p.y=0;
+      cx.beginPath();
+      cx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      cx.fillStyle = p.gold
+        ? `rgba(201,168,76,${p.a})`
+        : `rgba(230,225,214,${p.a*.45})`;
+      cx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  resize(); mkPts(); draw();
+  window.addEventListener('resize',()=>{resize(); mkPts();});
+})();
+
+/* ── PANEL ENGINE ─────────────────────────────────── */
 const panels = gsap.utils.toArray('.panel');
-const dots   = gsap.utils.toArray('.panel-dot');
-let currentIndex = 0;
-let animating    = false;
+const dots   = document.querySelectorAll('.pd');
+let cur = 0, busy = false;
 
-// Initial state: all panels except first are below viewport
-gsap.set(panels.slice(1), { yPercent: 100 });
+gsap.set(panels.slice(1),{yPercent:100});
 
-function updateDots(index) {
-  dots.forEach((d, i) => d.classList.toggle('active', i === index));
-}
+function setDots(i){dots.forEach((d,j)=>d.classList.toggle('on',j===i));}
 
-function gotoPanel(index, direction) {
-  if (index < 0 || index >= panels.length || animating) return;
-  animating = true;
-
-  const prev = panels[currentIndex];
-  const next = panels[index];
+function gotoPanel(idx, dir){
+  if(idx<0||idx>=panels.length||busy) return;
+  busy = true;
+  const prev = panels[cur];
+  const next = panels[idx];
 
   const tl = gsap.timeline({
-    defaults: { duration: 1.1, ease: 'power3.inOut' },
-    onComplete: () => { animating = false; }
+    defaults:{duration:1.15, ease:'power3.inOut'},
+    onComplete(){ busy=false; }
   });
+  tl.to(prev,{yPercent: dir>0?-100:100},0);
+  tl.fromTo(next,{yPercent: dir>0?100:-100},{yPercent:0},0);
 
-  // Exit current panel
-  tl.to(prev, { yPercent: direction > 0 ? -100 : 100 }, 0);
-  // Enter next panel
-  tl.fromTo(next,
-    { yPercent: direction > 0 ? 100 : -100 },
-    { yPercent: 0 },
-    0
-  );
-
-  // Animate panel content
-  animatePanelIn(next, index);
-
-  currentIndex = index;
-  updateDots(index);
+  enterPanel(next, idx);
+  cur = idx;
+  setDots(idx);
+  document.getElementById('nav').classList.toggle('solid', idx>0);
 }
 
-function animatePanelIn(panel, index) {
-  if (index === 0) {
-    gsap.fromTo('#hero-eyebrow', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.8, delay:0.3, ease:'power3.out' });
-    gsap.fromTo('#hero-heading',  { opacity:0, y:40 }, { opacity:1, y:0, duration:0.9, delay:0.4, ease:'power3.out' });
-    gsap.fromTo('#hero-sub',      { opacity:0, y:20 }, { opacity:1, y:0, duration:0.7, delay:0.6, ease:'power3.out' });
-    gsap.fromTo('#hero-cta',      { opacity:0, y:15 }, { opacity:1, y:0, duration:0.7, delay:0.7, ease:'power3.out' });
-    gsap.to('#hero-cube', { rotation:5, duration:6, repeat:-1, yoyo:true, ease:'sine.inOut' });
+/* per-panel entrance animations */
+function enterPanel(panel, idx){
+  const fadeUp = (sel, delay=0) => {
+    const el = panel.querySelector ? panel.querySelector(sel) : document.querySelector(sel);
+    if(el) gsap.fromTo(el,{opacity:0,y:28},{opacity:1,y:0,duration:.85,delay:.3+delay,ease:'power3.out'});
+  };
+
+  if(idx===0){
+    gsap.fromTo('#hero-ey', {opacity:0,y:14},{opacity:1,y:0,duration:.7,delay:.35,ease:'power3.out'});
+    gsap.fromTo('#hero-h1', {opacity:0,y:36},{opacity:1,y:0,duration:.9,delay:.45,ease:'power3.out'});
+    gsap.fromTo('#hero-p',  {opacity:0,y:20},{opacity:1,y:0,duration:.7,delay:.62,ease:'power3.out'});
+    gsap.fromTo('#hero-sh', {opacity:0,y:12},{opacity:1,y:0,duration:.6,delay:.78,ease:'power3.out'});
+    gsap.fromTo('#hero-co', {opacity:0},     {opacity:1,duration:.8,delay:.9});
+    // orbit rings
+    gsap.to('#orb-r1',{rotation:360,duration:40,repeat:-1,ease:'none'});
+    gsap.to('#orb-r2',{rotation:-360,duration:28,repeat:-1,ease:'none'});
   }
-  if (index === 1) {
-    gsap.fromTo('.co-toc-btn', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5, stagger:0.06, delay:0.3, ease:'power2.out' });
-    gsap.fromTo('.co-detail-pane:not(.hidden)', { opacity:0, y:30 }, { opacity:1, y:0, duration:0.7, delay:0.4, ease:'power3.out' });
-    gsap.fromTo('.co-row', { opacity:0, x:20 }, { opacity:1, x:0, duration:0.5, stagger:0.05, delay:0.4, ease:'power2.out' });
+
+  if(idx===1){
+    gsap.fromTo('#well-wg .wl',{opacity:0,y:18},{opacity:1,y:0,duration:.6,delay:.3,ease:'power3.out'});
+    gsap.fromTo('#well-wg .w-title',{opacity:0,x:-30},{opacity:1,x:0,duration:.8,delay:.38,ease:'power3.out'});
+    gsap.fromTo('#well-wg .w-tag',{opacity:0,y:14},{opacity:1,y:0,duration:.6,delay:.52,ease:'power3.out'});
+    gsap.fromTo('#well-brands .bchip',{opacity:0,y:12},{opacity:1,y:0,duration:.45,stagger:.06,delay:.6,ease:'power2.out'});
+    gsap.fromTo('#well-wg .aside-box',{opacity:0,x:30},{opacity:1,x:0,duration:.7,delay:.5,ease:'power3.out'});
   }
-  if (index === 2) {
-    gsap.fromTo('#phil-heading', { opacity:0, x:-40 }, { opacity:1, x:0, duration:0.9, delay:0.3, ease:'power3.out' });
-    gsap.to('.phil-line', { opacity:1, x:0, duration:0.7, stagger:0.15, delay:0.5, ease:'power3.out' });
+  if(idx===2){
+    gsap.fromTo('#tech-wg .w-title',{opacity:0,x:-30},{opacity:1,x:0,duration:.8,delay:.38});
+    gsap.fromTo('#tech-ents .ent',{opacity:0,x:30},{opacity:1,x:0,duration:.55,stagger:.1,delay:.45,ease:'power2.out'});
+    gsap.fromTo('#tech-wg .aside-box',{opacity:0,y:20},{opacity:1,y:0,duration:.6,delay:.75});
   }
-  if (index === 3) {
-    gsap.fromTo('.sector-cell', { opacity:0, y:30 }, { opacity:1, y:0, duration:0.6, stagger:0.08, delay:0.3, ease:'power3.out' });
+  if(idx===3){
+    gsap.fromTo('#medi-wg .w-title',{opacity:0,x:-30},{opacity:1,x:0,duration:.8,delay:.38});
+    gsap.fromTo('#medi-ents .ent',{opacity:0,x:30},{opacity:1,x:0,duration:.55,stagger:.09,delay:.45,ease:'power2.out'});
+    gsap.fromTo('#medi-wg .aside-box',{opacity:0,y:20},{opacity:1,y:0,duration:.6,delay:.82});
   }
-  if (index === 4) {
-    gsap.fromTo('#panel-4 h2', { opacity:0, y:30 }, { opacity:1, y:0, duration:0.8, delay:0.3, ease:'power3.out' });
-    gsap.fromTo('#panel-4 h3', { opacity:0, x:30 }, { opacity:1, x:0, duration:0.8, delay:0.5, ease:'power3.out' });
-    // Scan line
-    gsap.fromTo('#scan-line', { top:'-1px' }, { top:'100%', duration:3, repeat:-1, ease:'none', delay:0.8 });
+  if(idx===4){
+    gsap.fromTo('#heal-wg .w-title',{opacity:0,x:-30},{opacity:1,x:0,duration:.8,delay:.38});
+    gsap.fromTo('#heal-ents .ent',{opacity:0,x:30},{opacity:1,x:0,duration:.55,stagger:.1,delay:.5,ease:'power2.out'});
+    gsap.fromTo('#heal-wg .aside-box',{opacity:0,y:20},{opacity:1,y:0,duration:.6,delay:.7});
+  }
+  if(idx===5){
+    gsap.fromTo('#infr-wg .w-title',{opacity:0,x:-30},{opacity:1,x:0,duration:.8,delay:.38});
+    gsap.fromTo('#infr-ents .ent',{opacity:0,x:30},{opacity:1,x:0,duration:.55,stagger:.1,delay:.5,ease:'power2.out'});
+    gsap.fromTo('#infr-wg .aside-box',{opacity:0,y:20},{opacity:1,y:0,duration:.6,delay:.7});
+  }
+  if(idx===6){
+    gsap.fromTo('#eco-wrap > div:first-child',{opacity:0,x:-30},{opacity:1,x:0,duration:.8,delay:.38});
+    gsap.fromTo('.eco-node',{opacity:0,scale:.5},{opacity:1,scale:1,duration:.6,stagger:.12,delay:.5,ease:'back.out(1.4)',transformOrigin:'center center'});
+    gsap.fromTo('#eco-c',{opacity:0,scale:.3},{opacity:1,scale:1,duration:.7,delay:.35,ease:'back.out(2)',transformOrigin:'center center'});
+    gsap.fromTo('.eco-sub-item',{opacity:0,y:14},{opacity:1,y:0,duration:.45,stagger:.08,delay:.85});
+  }
+  if(idx===7){
+    gsap.fromTo('.stat-col',{opacity:0,y:24},{opacity:1,y:0,duration:.6,stagger:.09,delay:.35,ease:'power2.out'});
+    gsap.fromTo('#cta-b',{opacity:0,y:28},{opacity:1,y:0,duration:.8,delay:.7,ease:'power3.out'});
+    gsap.fromTo('.foot-row',{opacity:0,y:16},{opacity:1,y:0,duration:.6,delay:.95});
   }
 }
 
-// Observer
+/* ── OBSERVER ─────────────────────────────────────── */
 Observer.create({
-  type: 'wheel,touch,pointer',
-  wheelSpeed: -1,
-  onDown:  () => !animating && gotoPanel(currentIndex - 1, -1),
-  onUp:    () => !animating && gotoPanel(currentIndex + 1,  1),
-  tolerance: 10,
-  preventDefault: true,
+  type:'wheel,touch,pointer',
+  wheelSpeed:-1,
+  onDown:()=>!busy && gotoPanel(cur-1,-1),
+  onUp:  ()=>!busy && gotoPanel(cur+1, 1),
+  tolerance:12,
+  preventDefault:true,
 });
 
-// Dot click navigation
-dots.forEach((dot, i) => {
-  dot.addEventListener('click', () => {
-    const dir = i > currentIndex ? 1 : -1;
-    gotoPanel(i, dir);
-  });
+/* ── DOT CLICKS ───────────────────────────────────── */
+dots.forEach(d => d.addEventListener('click',()=>{
+  const i = parseInt(d.dataset.i);
+  gotoPanel(i, i>cur?1:-1);
+}));
+
+/* ── KEYBOARD ─────────────────────────────────────── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'||e.key==='PageDown'){e.preventDefault();gotoPanel(cur+1,1);}
+  if(e.key==='ArrowUp'  ||e.key==='PageUp')  {e.preventDefault();gotoPanel(cur-1,-1);}
 });
 
-// TOC and card clicks (Panel 1)
-document.querySelectorAll('.co-toc-btn, .co-card-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const idx = parseInt(btn.dataset.index);
-    document.querySelectorAll('.co-detail-pane').forEach(p => p.classList.add('hidden'));
-    const target = document.querySelector(`.co-detail-pane[data-index="${idx}"]`);
-    if (target) {
-      target.classList.remove('hidden');
-      gsap.fromTo(target, { opacity:0, y:20 }, { opacity:1, y:0, duration:0.4, ease:'power2.out' });
-    }
-    document.querySelectorAll('.co-toc-btn').forEach(b => b.classList.remove('text-amber-400','text-white'));
-    document.querySelectorAll('.co-toc-btn').forEach(b => b.classList.add('text-slate-500'));
-    const tocBtn = document.querySelector(`.co-toc-btn[data-index="${idx}"]`);
-    if (tocBtn) { tocBtn.classList.remove('text-slate-500'); tocBtn.classList.add('text-amber-400'); }
-  });
+/* ── PARALLAX HOVER on hero orb ───────────────────── */
+const orb = document.getElementById('hero-orb');
+document.addEventListener('mousemove',e=>{
+  if(cur!==0||!orb) return;
+  const dx = (e.clientX/window.innerWidth  - .5) * 22;
+  const dy = (e.clientY/window.innerHeight - .5) * 14;
+  gsap.to(orb,{x:dx,y:dy,duration:1.4,ease:'power2.out'});
 });
 
-// Keyboard navigation
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); gotoPanel(currentIndex + 1,  1); }
-  if (e.key === 'ArrowUp'   || e.key === 'PageUp')   { e.preventDefault(); gotoPanel(currentIndex - 1, -1); }
-});
-
-// Boot
-animatePanelIn(panels[0], 0);
+/* ── BOOT ─────────────────────────────────────────── */
+enterPanel(panels[0],0);
 </script>
-{% endblock %}
+</body>
+</html>
