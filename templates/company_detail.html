@@ -1,0 +1,504 @@
+{% extends "base.html" %}
+{% set theme_map = {
+  'amber': {'hex': '#f59e0b', 'soft': '#fbbf24', 'rgb': '245,158,11'},
+  'sky': {'hex': '#38bdf8', 'soft': '#7dd3fc', 'rgb': '56,189,248'},
+  'emerald': {'hex': '#34d399', 'soft': '#6ee7b7', 'rgb': '52,211,153'},
+  'violet': {'hex': '#a78bfa', 'soft': '#c4b5fd', 'rgb': '167,139,250'},
+  'orange': {'hex': '#fb923c', 'soft': '#fdba74', 'rgb': '251,146,60'},
+  'teal': {'hex': '#2dd4bf', 'soft': '#5eead4', 'rgb': '45,212,191'}
+} %}
+{% set theme = theme_map.get(company.color, theme_map['amber']) %}
+
+{% block title %}{{ company.name }} — Nova Capital Holdings{% endblock %}
+
+{% block extra_head %}
+<style>
+  .company-detail-page {
+    --accent: {{ theme.hex }};
+    --accent-soft: {{ theme.soft }};
+    --accent-rgb: {{ theme.rgb }};
+    position: relative;
+    isolation: isolate;
+  }
+  .company-detail-page::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at top left, rgba(var(--accent-rgb), 0.18), transparent 34%),
+      radial-gradient(circle at 80% 10%, rgba(255,255,255,0.04), transparent 26%),
+      linear-gradient(180deg, rgba(2,6,23,0.65), rgba(2,6,23,0.94));
+    z-index: -3;
+    pointer-events: none;
+  }
+  .cinematic-grid,
+  .particle-layer,
+  .noise-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -2;
+  }
+  .cinematic-grid {
+    background-image:
+      linear-gradient(rgba(148,163,184,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,0.04) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(180deg, rgba(255,255,255,0.26), transparent 78%);
+  }
+  .noise-layer {
+    opacity: 0.2;
+    background-image:
+      radial-gradient(rgba(255,255,255,0.12) 0.6px, transparent 0.6px),
+      radial-gradient(rgba(var(--accent-rgb), 0.15) 0.7px, transparent 0.7px);
+    background-size: 26px 26px, 36px 36px;
+    background-position: 0 0, 14px 18px;
+    mix-blend-mode: screen;
+  }
+  .orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(16px);
+    will-change: transform;
+    opacity: 0.9;
+  }
+  .orb-1 {
+    width: 30rem;
+    height: 30rem;
+    top: 7%;
+    left: -6%;
+    background: radial-gradient(circle, rgba(var(--accent-rgb), 0.44) 0%, rgba(var(--accent-rgb), 0.16) 34%, transparent 72%);
+  }
+  .orb-2 {
+    width: 24rem;
+    height: 24rem;
+    right: -3%;
+    top: 22%;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(var(--accent-rgb), 0.14) 36%, transparent 72%);
+  }
+  .orb-3 {
+    width: 20rem;
+    height: 20rem;
+    left: 34%;
+    bottom: 10%;
+    background: radial-gradient(circle, rgba(var(--accent-rgb), 0.24) 0%, rgba(59,130,246,0.08) 42%, transparent 72%);
+  }
+  .hero-shell,
+  .detail-card,
+  .metric-shell,
+  .more-company-card {
+    background: linear-gradient(180deg, rgba(15,23,42,0.72), rgba(2,6,23,0.84));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(148,163,184,0.12);
+    box-shadow: 0 24px 80px rgba(2, 6, 23, 0.45);
+  }
+  .hero-shell {
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-shell::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), transparent 32%, transparent 68%, rgba(var(--accent-rgb), 0.08));
+    pointer-events: none;
+  }
+  .hero-shell::before {
+    content: "";
+    position: absolute;
+    inset: auto -10% -40% 40%;
+    height: 22rem;
+    background: radial-gradient(circle, rgba(var(--accent-rgb), 0.22) 0%, transparent 68%);
+    filter: blur(24px);
+    pointer-events: none;
+  }
+  .accent-text { color: var(--accent); }
+  .accent-border { border-color: rgba(var(--accent-rgb), 0.36); }
+  .accent-pill {
+    background: rgba(var(--accent-rgb), 0.12);
+    color: var(--accent-soft);
+    border: 1px solid rgba(var(--accent-rgb), 0.28);
+  }
+  .accent-line {
+    background: linear-gradient(90deg, rgba(var(--accent-rgb), 0), rgba(var(--accent-rgb), 0.75), rgba(var(--accent-rgb), 0));
+  }
+  .hero-title {
+    background: linear-gradient(135deg, #ffffff 10%, var(--accent-soft) 48%, rgba(var(--accent-rgb), 0.88) 88%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .metric-shell {
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), transparent 50%);
+    pointer-events: none;
+  }
+  .metric-value {
+    letter-spacing: -0.03em;
+    text-shadow: 0 0 28px rgba(var(--accent-rgb), 0.18);
+  }
+  .spotlight-ring {
+    position: absolute;
+    width: 24rem;
+    height: 24rem;
+    right: -8rem;
+    top: -8rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(var(--accent-rgb), 0.16);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+    opacity: 0.65;
+  }
+  .spotlight-ring::after,
+  .spotlight-ring::before {
+    content: "";
+    position: absolute;
+    inset: 2rem;
+    border-radius: inherit;
+    border: 1px solid rgba(var(--accent-rgb), 0.12);
+  }
+  .spotlight-ring::before {
+    inset: 4rem;
+    border-color: rgba(var(--accent-rgb), 0.08);
+  }
+  .overview-stat {
+    background: rgba(15,23,42,0.6);
+    border: 1px solid rgba(148,163,184,0.08);
+  }
+  .more-company-card:hover,
+  .metric-shell:hover,
+  .detail-card:hover {
+    border-color: rgba(var(--accent-rgb), 0.28);
+    transform: translateY(-4px);
+  }
+  .more-company-card,
+  .metric-shell,
+  .detail-card {
+    transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  }
+  .more-company-card:hover {
+    box-shadow: 0 24px 72px rgba(2, 6, 23, 0.55), 0 0 0 1px rgba(var(--accent-rgb), 0.12);
+  }
+  @media (max-width: 768px) {
+    .orb-1,
+    .orb-2,
+    .orb-3 {
+      filter: blur(28px);
+      opacity: 0.7;
+    }
+    .orb-1 { width: 22rem; height: 22rem; }
+    .orb-2 { width: 18rem; height: 18rem; }
+    .orb-3 { width: 16rem; height: 16rem; left: 15%; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="company-detail-page min-h-screen overflow-hidden">
+  <div class="particle-layer" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="cinematic-grid" aria-hidden="true"></div>
+  <div class="noise-layer" aria-hidden="true"></div>
+
+  <section class="pt-32 pb-10 px-6">
+    <div class="max-w-7xl mx-auto">
+      <a href="{{ url_for('public.portfolio') }}" class="detail-hero-reveal inline-flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors mb-8">
+        <span class="accent-text">←</span>
+        <span>Back to portfolio</span>
+      </a>
+
+      <div class="hero-shell rounded-[2rem] p-8 md:p-12 lg:p-14">
+        <div class="spotlight-ring hidden lg:block" aria-hidden="true"></div>
+        <div class="grid lg:grid-cols-[1.35fr_0.95fr] gap-10 items-start relative">
+          <div class="relative z-10">
+            <div class="detail-hero-reveal inline-flex items-center gap-3 flex-wrap mb-6">
+              <span class="accent-pill px-4 py-2 rounded-full text-xs md:text-sm tracking-[0.28em] uppercase font-semibold">{{ company.sector }}</span>
+              {% if company.ticker %}
+              <span class="px-3 py-2 rounded-full text-xs md:text-sm uppercase tracking-[0.24em] bg-white/5 text-slate-300 border border-white/10">{{ company.ticker }}</span>
+              {% endif %}
+              <span class="px-3 py-2 rounded-full text-xs md:text-sm uppercase tracking-[0.24em] bg-emerald-500/10 text-emerald-300 border border-emerald-500/15">{{ company.status }}</span>
+            </div>
+
+            <h1 class="detail-hero-reveal hero-title text-5xl md:text-7xl lg:text-[5.5rem] font-black leading-[0.95] tracking-[-0.05em] max-w-4xl">{{ company.name }}</h1>
+
+            <div class="detail-hero-reveal accent-line h-px w-32 my-8"></div>
+
+            <p class="detail-hero-reveal text-lg md:text-xl text-slate-300/90 leading-relaxed max-w-3xl">{{ company.description }}</p>
+
+            <div class="detail-hero-reveal grid sm:grid-cols-3 gap-4 mt-10 max-w-3xl">
+              <div class="overview-stat rounded-2xl p-4">
+                <div class="text-xs uppercase tracking-[0.22em] text-slate-500 mb-2">Headquarters</div>
+                <div class="text-white font-semibold text-base">{{ company.headquarters or 'Undisclosed' }}</div>
+              </div>
+              <div class="overview-stat rounded-2xl p-4">
+                <div class="text-xs uppercase tracking-[0.22em] text-slate-500 mb-2">Founded</div>
+                <div class="text-white font-semibold text-base">{{ company.founded or 'N/A' }}</div>
+              </div>
+              <div class="overview-stat rounded-2xl p-4">
+                <div class="text-xs uppercase tracking-[0.22em] text-slate-500 mb-2">Employees</div>
+                <div class="text-white font-semibold text-base">{{ '{:,}'.format(company.employees) if company.employees else 'N/A' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4 lg:pt-6">
+            <div class="metric-shell detail-hero-reveal rounded-2xl p-5">
+              <div class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-4">Valuation</div>
+              <div class="metric-value text-3xl md:text-4xl font-black text-white" data-counter data-format="currency-short" data-value="{{ company.valuation or 0 }}">{{ fmt_currency(company.valuation or 0) }}</div>
+              <div class="mt-3 text-sm text-slate-400">Current enterprise value</div>
+            </div>
+            <div class="metric-shell detail-hero-reveal rounded-2xl p-5">
+              <div class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-4">Ownership</div>
+              <div class="metric-value text-3xl md:text-4xl font-black text-white" data-counter data-format="percent" data-value="{{ company.ownership or 0 }}" data-decimals="1">{{ '%.1f'|format(company.ownership or 0) }}%</div>
+              <div class="mt-3 text-sm text-slate-400">Nova Capital stake</div>
+            </div>
+            <div class="metric-shell detail-hero-reveal rounded-2xl p-5">
+              <div class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-4">Growth</div>
+              <div class="metric-value text-3xl md:text-4xl font-black text-white" data-counter data-format="signed-percent" data-value="{{ (company.growth or '0')|replace('%', '')|replace('+', '')|replace(',', '') }}">{{ company.growth or '+0%' }}</div>
+              <div class="mt-3 text-sm text-slate-400">Since initial investment</div>
+            </div>
+            <div class="metric-shell detail-hero-reveal rounded-2xl p-5">
+              <div class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-4">ROI</div>
+              <div class="metric-value text-3xl md:text-4xl font-black text-white" data-counter data-format="signed-percent" data-value="{{ company.roi|round(1) }}" data-decimals="1">+{{ company.roi|round(1) }}%</div>
+              <div class="mt-3 text-sm text-slate-400">Return on invested capital</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pb-12 px-6">
+    <div class="max-w-7xl mx-auto grid lg:grid-cols-[1.25fr_0.95fr] gap-6 items-start">
+      <div class="detail-card detail-reveal rounded-[2rem] p-8 md:p-10">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center border accent-border" style="background: rgba(var(--accent-rgb), 0.12);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 accent-text" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-[0.28em] text-slate-500">Company Overview</div>
+            <h2 class="text-2xl md:text-3xl font-black text-white">A premium operating profile</h2>
+          </div>
+        </div>
+        <p class="text-slate-300 leading-8 text-lg">{{ company.description }}</p>
+        <div class="grid md:grid-cols-2 gap-4 mt-8">
+          <div class="overview-stat rounded-2xl p-5">
+            <div class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-2">Strategic Footprint</div>
+            <div class="text-white text-lg font-semibold">{{ company.headquarters or 'Global' }}</div>
+            <p class="text-slate-400 text-sm leading-relaxed mt-3">Built for durable category leadership with a disciplined operating cadence and institutional-grade governance.</p>
+          </div>
+          <div class="overview-stat rounded-2xl p-5">
+            <div class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-2">Operating Scale</div>
+            <div class="text-white text-lg font-semibold">{{ '{:,}'.format(company.employees) if company.employees else 'Lean team' }}</div>
+            <p class="text-slate-400 text-sm leading-relaxed mt-3">Talent density and execution depth aligned to sustained expansion across critical market segments.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="detail-card detail-reveal rounded-[2rem] p-7">
+          <div class="text-xs uppercase tracking-[0.28em] text-slate-500 mb-5">Company Profile</div>
+          <div class="space-y-5">
+            <div class="flex items-start justify-between gap-4 border-b border-white/5 pb-4">
+              <span class="text-slate-400">Sector</span>
+              <span class="text-white font-semibold text-right">{{ company.sector }}</span>
+            </div>
+            <div class="flex items-start justify-between gap-4 border-b border-white/5 pb-4">
+              <span class="text-slate-400">Headquarters</span>
+              <span class="text-white font-semibold text-right">{{ company.headquarters or 'Undisclosed' }}</span>
+            </div>
+            <div class="flex items-start justify-between gap-4 border-b border-white/5 pb-4">
+              <span class="text-slate-400">Founded</span>
+              <span class="text-white font-semibold text-right">{{ company.founded or 'N/A' }}</span>
+            </div>
+            <div class="flex items-start justify-between gap-4 border-b border-white/5 pb-4">
+              <span class="text-slate-400">Employees</span>
+              <span class="text-white font-semibold text-right">{{ '{:,}'.format(company.employees) if company.employees else 'N/A' }}</span>
+            </div>
+            <div class="flex items-start justify-between gap-4">
+              <span class="text-slate-400">Visibility</span>
+              <span class="text-white font-semibold text-right">Public portfolio company</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-card detail-reveal rounded-[2rem] p-7 overflow-hidden relative">
+          <div class="absolute inset-x-0 top-0 h-px accent-line"></div>
+          <div class="text-xs uppercase tracking-[0.28em] text-slate-500 mb-4">Investment Thesis</div>
+          <h3 class="text-white text-2xl font-black mb-3">Performance engineered for outsized upside</h3>
+          <p class="text-slate-400 leading-7">Nova Capital backs category-defining platforms with asymmetric market positioning, disciplined capital deployment, and measurable operational momentum.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pb-16 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="detail-reveal flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+        <div>
+          <div class="text-xs uppercase tracking-[0.28em] text-slate-500 mb-3">Key Metrics</div>
+          <h2 class="text-3xl md:text-4xl font-black text-white">Institutional-grade performance snapshot</h2>
+        </div>
+        <p class="text-slate-400 max-w-2xl">A concise readout of enterprise scale, capital efficiency, and value creation against the original investment basis.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
+        <div class="metric-shell detail-reveal rounded-[1.75rem] p-6">
+          <div class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-4">Valuation</div>
+          <div class="metric-value text-4xl font-black text-white">{{ fmt_currency(company.valuation or 0) }}</div>
+          <div class="mt-3 text-sm text-slate-400">Marked against current portfolio appraisal.</div>
+        </div>
+        <div class="metric-shell detail-reveal rounded-[1.75rem] p-6">
+          <div class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-4">Ownership Stake</div>
+          <div class="metric-value text-4xl font-black text-white">{{ '%.1f'|format(company.ownership or 0) }}%</div>
+          <div class="mt-3 text-sm text-slate-400">Aligned for strategic influence and long-term control.</div>
+        </div>
+        <div class="metric-shell detail-reveal rounded-[1.75rem] p-6">
+          <div class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-4">Growth</div>
+          <div class="metric-value text-4xl font-black text-white">{{ company.growth or '+0%' }}</div>
+          <div class="mt-3 text-sm text-slate-400">Expansion rate captured since initial entry.</div>
+        </div>
+        <div class="metric-shell detail-reveal rounded-[1.75rem] p-6">
+          <div class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-4">ROI</div>
+          <div class="metric-value text-4xl font-black text-white">+{{ company.roi|round(1) }}%</div>
+          <div class="mt-3 text-sm text-slate-400">Capital multiple translated into realized upside.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pb-24 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="detail-reveal flex items-center justify-between gap-4 mb-8 flex-wrap">
+        <div>
+          <div class="text-xs uppercase tracking-[0.28em] text-slate-500 mb-3">More Companies</div>
+          <h2 class="text-3xl md:text-4xl font-black text-white">Continue exploring the portfolio</h2>
+        </div>
+        <a href="{{ url_for('public.portfolio') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-white/10 bg-white/5 text-slate-200 hover:text-white hover:border-white/20 transition-all">
+          Back to portfolio
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+          </svg>
+        </a>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-5">
+        {% for other in other_companies %}
+        {% set other_theme = theme_map.get(other.color, theme_map['amber']) %}
+        <a href="{{ url_for('public.company_detail', company_id=other.id) }}" class="more-company-card detail-reveal rounded-[1.75rem] p-6 block group relative overflow-hidden">
+          <div class="absolute inset-x-0 top-0 h-px" style="background: linear-gradient(90deg, transparent, rgba({{ other_theme.rgb }}, 0.85), transparent);"></div>
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs uppercase tracking-[0.24em] mb-5" style="background: rgba({{ other_theme.rgb }}, 0.12); color: {{ other_theme.soft }}; border: 1px solid rgba({{ other_theme.rgb }}, 0.24);">
+            {{ other.sector }}
+          </div>
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <h3 class="text-white text-2xl font-black leading-tight group-hover:text-white/90 transition-colors">{{ other.name }}</h3>
+              <div class="text-slate-500 text-sm mt-2">{{ other.ticker or 'Private' }} · {{ other.headquarters or 'Global' }}</div>
+            </div>
+            <span class="text-sm font-semibold" style="color: {{ other_theme.soft }};">{{ other.growth or '+0%' }}</span>
+          </div>
+          <p class="text-slate-400 text-sm leading-7 mb-5">{{ other.description }}</p>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-white font-semibold">{{ fmt_currency(other.valuation or 0) }}</span>
+            <span class="inline-flex items-center gap-2" style="color: {{ other_theme.soft }};">
+              View company
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+              </svg>
+            </span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+
+  gsap.fromTo('.detail-hero-reveal',
+    { opacity: 0, y: 36 },
+    { opacity: 1, y: 0, duration: 0.95, stagger: 0.12, ease: 'power3.out', delay: 0.15 }
+  );
+
+  gsap.utils.toArray('.detail-reveal').forEach((element, index) => {
+    gsap.fromTo(element,
+      { opacity: 0, y: 48 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.9,
+        ease: 'power3.out',
+        delay: index * 0.03,
+        scrollTrigger: {
+          trigger: element,
+          start: 'top 84%',
+          once: true,
+        },
+      }
+    );
+  });
+
+  gsap.to('.orb-1', { x: 120, y: 70, duration: 15, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+  gsap.to('.orb-2', { x: -90, y: 80, duration: 17, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+  gsap.to('.orb-3', { x: 70, y: -90, duration: 13, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+
+  function formatCounter(value, format, decimals) {
+    const fixed = Number(value).toFixed(decimals);
+    if (format === 'currency-short') {
+      const absolute = Math.abs(Number(value));
+      if (absolute >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
+      if (absolute >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+      if (absolute >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+      return `$${Math.round(value).toLocaleString()}`;
+    }
+    if (format === 'percent') {
+      return `${Number(fixed).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}%`;
+    }
+    if (format === 'signed-percent') {
+      const sign = Number(value) >= 0 ? '+' : '-';
+      return `${sign}${Math.abs(Number(fixed)).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}%`;
+    }
+    return Number(fixed).toLocaleString();
+  }
+
+  gsap.utils.toArray('[data-counter]').forEach((counter) => {
+    const value = parseFloat(counter.dataset.value || '0');
+    const format = counter.dataset.format || 'number';
+    const decimals = parseInt(counter.dataset.decimals || '0', 10);
+
+    gsap.fromTo(counter, { textContent: 0 }, {
+      textContent: value,
+      duration: 2,
+      ease: 'power2.out',
+      snap: decimals === 0 ? { textContent: 1 } : false,
+      scrollTrigger: {
+        trigger: counter,
+        start: 'top 88%',
+        once: true,
+      },
+      onUpdate: function () {
+        counter.textContent = formatCounter(this.targets()[0].textContent, format, decimals);
+      },
+      onComplete: function () {
+        counter.textContent = formatCounter(value, format, decimals);
+      },
+    });
+  });
+</script>
+{% endblock %}
