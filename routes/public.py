@@ -44,6 +44,20 @@ def portfolio():
     )
 
 
+@public_bp.route("/company/<company_id>")
+def company_detail(company_id):
+    company = PortfolioCompany.query.get_or_404(company_id)
+    if not company.is_public:
+        from flask import abort
+        abort(404)
+    # Get other companies for "More Companies" section
+    other_companies = PortfolioCompany.query.filter(
+        PortfolioCompany.id != company_id,
+        PortfolioCompany.is_public == True
+    ).limit(3).all()
+    return render_template("company_detail.html", company=company, other_companies=other_companies, fmt_currency=fmt_currency)
+
+
 @public_bp.route("/contact", methods=["GET", "POST"])
 def contact():
     submitted = False

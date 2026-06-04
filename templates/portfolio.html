@@ -1,135 +1,730 @@
 {% extends "base.html" %}
 {% block title %}Portfolio — Nova Capital Holdings{% endblock %}
 
+{% block extra_head %}
+<style>
+  .portfolio-shell {
+    position: relative;
+    min-height: 100vh;
+    background: #030712;
+    isolation: isolate;
+    overflow: clip;
+  }
+
+  .portfolio-backdrop,
+  .particle-grid,
+  .portfolio-noise,
+  .portfolio-orbs {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .portfolio-backdrop {
+    z-index: -5;
+    overflow: hidden;
+    background: linear-gradient(145deg, rgba(2, 6, 23, 0.98) 0%, rgba(3, 7, 18, 0.94) 45%, rgba(9, 14, 29, 0.98) 100%);
+  }
+
+  .gradient-canvas {
+    position: absolute;
+    inset: -12%;
+    filter: blur(24px) saturate(125%);
+    opacity: 0.95;
+    transform: scale(1.08);
+    background:
+      radial-gradient(circle at 14% 18%, rgba(245, 158, 11, 0.22) 0, transparent 26%),
+      radial-gradient(circle at 82% 14%, rgba(56, 189, 248, 0.18) 0, transparent 24%),
+      radial-gradient(circle at 68% 70%, rgba(168, 85, 247, 0.18) 0, transparent 28%),
+      radial-gradient(circle at 20% 82%, rgba(20, 184, 166, 0.14) 0, transparent 22%),
+      radial-gradient(circle at 48% 42%, rgba(251, 191, 36, 0.12) 0, transparent 18%);
+    transform-origin: center;
+  }
+
+  .gradient-mesh {
+    position: absolute;
+    inset: 0;
+    opacity: 0.55;
+    mix-blend-mode: screen;
+    background:
+      linear-gradient(115deg, rgba(245, 158, 11, 0.12), transparent 36%),
+      linear-gradient(240deg, rgba(56, 189, 248, 0.08), transparent 40%),
+      linear-gradient(330deg, rgba(168, 85, 247, 0.08), transparent 32%);
+  }
+
+  .particle-grid {
+    z-index: -4;
+    opacity: 0.45;
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+      radial-gradient(circle at center, rgba(245, 158, 11, 0.25) 0 1px, transparent 1.4px),
+      radial-gradient(circle at center, rgba(255, 255, 255, 0.12) 0 0.9px, transparent 1.2px);
+    background-size: 72px 72px, 72px 72px, 24px 24px, 18px 18px;
+    background-position: 0 0, 0 0, 0 0, 9px 9px;
+    mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 35%, transparent 88%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 35%, transparent 88%);
+  }
+
+  .portfolio-noise {
+    z-index: -3;
+    opacity: 0.08;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.35) 0 0.7px, transparent 0.9px),
+      radial-gradient(circle at 80% 45%, rgba(255, 255, 255, 0.28) 0 0.7px, transparent 1px),
+      radial-gradient(circle at 55% 80%, rgba(255, 255, 255, 0.32) 0 0.7px, transparent 1px);
+    background-size: 160px 160px, 210px 210px, 190px 190px;
+  }
+
+  .portfolio-orbs {
+    z-index: -2;
+    overflow: hidden;
+  }
+
+  .floating-orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(2px);
+    opacity: 0.55;
+    transform-style: preserve-3d;
+    box-shadow:
+      inset -18px -18px 35px rgba(255, 255, 255, 0.06),
+      inset 18px 18px 35px rgba(255, 255, 255, 0.02),
+      0 30px 80px rgba(0, 0, 0, 0.28);
+  }
+
+  .floating-orb::before {
+    content: '';
+    position: absolute;
+    inset: 12%;
+    border-radius: inherit;
+    background: radial-gradient(circle at 28% 28%, rgba(255, 255, 255, 0.35), transparent 30%);
+    opacity: 0.7;
+  }
+
+  .orb-1 {
+    width: 18rem;
+    height: 18rem;
+    top: 12%;
+    left: -4rem;
+    background: radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.4), rgba(245, 158, 11, 0.12) 45%, rgba(245, 158, 11, 0.04) 70%, transparent 85%);
+  }
+
+  .orb-2 {
+    width: 12rem;
+    height: 12rem;
+    top: 28%;
+    right: 10%;
+    background: radial-gradient(circle at 35% 35%, rgba(56, 189, 248, 0.32), rgba(14, 165, 233, 0.1) 45%, rgba(14, 165, 233, 0.02) 70%, transparent 85%);
+  }
+
+  .orb-3 {
+    width: 16rem;
+    height: 16rem;
+    bottom: 12%;
+    right: -3rem;
+    background: radial-gradient(circle at 30% 30%, rgba(167, 139, 250, 0.34), rgba(139, 92, 246, 0.08) 46%, rgba(139, 92, 246, 0.02) 72%, transparent 85%);
+  }
+
+  .orb-4 {
+    width: 9rem;
+    height: 9rem;
+    bottom: 22%;
+    left: 8%;
+    background: radial-gradient(circle at 30% 30%, rgba(45, 212, 191, 0.3), rgba(20, 184, 166, 0.08) 48%, rgba(20, 184, 166, 0.02) 72%, transparent 85%);
+  }
+
+  .hero-panel,
+  .stat-card,
+  .company-card,
+  .allocation-shell,
+  .allocation-card {
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.74), rgba(15, 23, 42, 0.46));
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    box-shadow: 0 30px 60px rgba(2, 6, 23, 0.35);
+  }
+
+  .hero-panel::before,
+  .stat-card::before,
+  .company-card::before,
+  .allocation-shell::before,
+  .allocation-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.14), transparent 24%, transparent 72%, rgba(245, 158, 11, 0.08));
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .hero-grid {
+    background-image:
+      linear-gradient(rgba(245, 158, 11, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245, 158, 11, 0.06) 1px, transparent 1px);
+    background-size: 90px 90px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.78), transparent 92%);
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.78), transparent 92%);
+  }
+
+  .eyebrow-pill {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.16), rgba(245, 158, 11, 0.06));
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.2), 0 12px 30px rgba(245, 158, 11, 0.08);
+  }
+
+  .metric-value {
+    letter-spacing: -0.04em;
+  }
+
+  .company-card {
+    transform-style: preserve-3d;
+    transform: perspective(1600px);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .company-card:hover {
+    border-color: rgba(245, 158, 11, 0.26);
+    box-shadow: 0 35px 70px rgba(2, 6, 23, 0.5), 0 0 0 1px rgba(245, 158, 11, 0.08);
+  }
+
+  .card-glow {
+    position: absolute;
+    inset: -30%;
+    background: radial-gradient(circle at center, rgba(245, 158, 11, 0.22), transparent 36%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .card-outline {
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    pointer-events: none;
+  }
+
+  .card-sheen {
+    position: absolute;
+    inset: -40% auto auto -20%;
+    width: 60%;
+    height: 180%;
+    transform: rotate(18deg);
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .metric-tile {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.08);
+    background: rgba(15, 23, 42, 0.5);
+  }
+
+  .metric-tile::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.3), transparent);
+  }
+
+  .allocation-track {
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.8);
+  }
+
+  .allocation-fill {
+    width: 0;
+    box-shadow: 0 0 24px currentColor;
+  }
+
+  .portfolio-link {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .portfolio-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    transform: translateX(-140%);
+  }
+
+  .portfolio-link:hover::after {
+    transform: translateX(140%);
+    transition: transform 0.9s ease;
+  }
+
+  @media (max-width: 767px) {
+    .gradient-canvas {
+      inset: -25%;
+      opacity: 0.8;
+    }
+
+    .particle-grid,
+    .portfolio-noise {
+      opacity: 0.25;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="animated-bg min-h-screen">
+{% set color_map = {
+  'amber': ('bg-amber-500/10', 'text-amber-400', 'border-amber-500/20'),
+  'sky': ('bg-sky-500/10', 'text-sky-400', 'border-sky-500/20'),
+  'emerald': ('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20'),
+  'violet': ('bg-violet-500/10', 'text-violet-400', 'border-violet-500/20'),
+  'orange': ('bg-orange-500/10', 'text-orange-400', 'border-orange-500/20'),
+  'teal': ('bg-teal-500/10', 'text-teal-400', 'border-teal-500/20'),
+} %}
+<div class="portfolio-shell text-white">
+  <div class="portfolio-backdrop" aria-hidden="true">
+    <div class="gradient-canvas"></div>
+    <div class="gradient-mesh"></div>
+  </div>
+  <div class="particle-grid"></div>
+  <div class="portfolio-noise"></div>
+  <div class="portfolio-orbs" aria-hidden="true">
+    <div class="floating-orb orb-1"></div>
+    <div class="floating-orb orb-2"></div>
+    <div class="floating-orb orb-3"></div>
+    <div class="floating-orb orb-4"></div>
+  </div>
 
-  <!-- Hero -->
-  <section class="pt-32 pb-16 px-6">
-    <div class="max-w-5xl mx-auto portfolio-hero text-center">
-      <div class="inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-sm text-amber-400 border border-amber-500/30 mb-8">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-        </svg>
-        <span>Portfolio Companies</span>
-      </div>
-      <h1 class="text-5xl md:text-7xl font-black text-white mb-6">Our <span class="gradient-text">Holdings</span></h1>
-      <p class="text-slate-400 text-lg max-w-2xl mx-auto mb-10">Six high-conviction investments across transformative sectors, each positioned to deliver exceptional long-term value.</p>
+  <section class="relative px-6 pt-28 pb-14 md:pt-36 md:pb-20">
+    <div class="absolute inset-0 hero-grid opacity-60"></div>
+    <div class="relative max-w-7xl mx-auto">
+      <div class="hero-panel rounded-[2rem] p-8 md:p-12 lg:p-16">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.12),transparent_38%)] pointer-events-none"></div>
+        <div class="relative grid lg:grid-cols-[1.35fr_0.85fr] gap-10 items-end">
+          <div class="portfolio-hero">
+            <div class="eyebrow-pill inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-amber-300/90 border border-amber-400/15 mb-8">
+              <span class="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.8)]"></span>
+              Public Portfolio
+            </div>
+            <h1 class="max-w-4xl text-5xl md:text-7xl lg:text-8xl font-black leading-[0.92] tracking-[-0.05em] mb-6">
+              Cinematic exposure to <span class="gradient-text">category-defining companies</span>.
+            </h1>
+            <p class="max-w-3xl text-base md:text-lg text-slate-300/85 leading-8 mb-8">
+              Explore Nova Capital Holdings' live portfolio across frontier technology, infrastructure, life sciences, and industrial transformation — presented through a premium market-intelligence interface.
+            </p>
+            <div class="flex flex-wrap items-center gap-3 text-sm text-slate-300/80 mb-10">
+              <div class="glass rounded-full px-4 py-2 border border-white/10">{{ companies|length }} active public holdings</div>
+              <div class="glass rounded-full px-4 py-2 border border-white/10">Long-duration capital partnerships</div>
+              <div class="glass rounded-full px-4 py-2 border border-white/10">Operationally engaged ownership model</div>
+            </div>
+          </div>
 
-      <div class="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
-        <div class="glass rounded-xl p-4 border border-slate-700/50">
-          <div class="gradient-text text-2xl font-black">{{ total_valuation }}</div>
-          <div class="text-slate-500 text-xs mt-1">Total Valuation</div>
+          <div class="relative">
+            <div class="absolute inset-0 rounded-[1.75rem] bg-gradient-to-br from-amber-500/10 via-transparent to-sky-500/10 blur-2xl"></div>
+            <div class="relative glass rounded-[1.75rem] p-6 md:p-7 border border-white/10">
+              <div class="text-xs uppercase tracking-[0.28em] text-slate-500 mb-4">Portfolio Signal</div>
+              <div class="space-y-4 text-sm text-slate-300/80">
+                <div class="flex items-start justify-between gap-4">
+                  <span>Capital formation</span>
+                  <span class="text-amber-300 font-semibold">Disciplined deployment</span>
+                </div>
+                <div class="flex items-start justify-between gap-4">
+                  <span>Exposure mix</span>
+                  <span class="text-sky-300 font-semibold">Diversified by sector</span>
+                </div>
+                <div class="flex items-start justify-between gap-4">
+                  <span>Value creation</span>
+                  <span class="text-emerald-300 font-semibold">Measured against entry basis</span>
+                </div>
+              </div>
+              <div class="mt-8 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+              <div class="mt-8 text-sm text-slate-400 leading-7">
+                Built for high-conviction stewardship with an emphasis on asymmetric upside, resilient fundamentals, and enduring strategic optionality.
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="glass rounded-xl p-4 border border-slate-700/50">
-          <div class="gradient-text text-2xl font-black">{{ total_invested }}</div>
-          <div class="text-slate-500 text-xs mt-1">Total Invested</div>
-        </div>
-        <div class="glass rounded-xl p-4 border border-slate-700/50">
-          <div class="gradient-text text-2xl font-black">{{ avg_return }}%</div>
-          <div class="text-slate-500 text-xs mt-1">Avg. Return</div>
+
+        <div class="relative mt-10 grid gap-4 md:grid-cols-3">
+          <div class="stat-card rounded-[1.5rem] p-6">
+            <div class="text-xs uppercase tracking-[0.28em] text-slate-500 mb-3">Total Valuation</div>
+            <div class="metric-value gradient-text text-4xl md:text-5xl font-black" data-counter data-target="{{ total_valuation }}">{{ total_valuation }}</div>
+            <p class="mt-3 text-sm text-slate-400">Aggregate enterprise value across all public portfolio companies.</p>
+          </div>
+          <div class="stat-card rounded-[1.5rem] p-6">
+            <div class="text-xs uppercase tracking-[0.28em] text-slate-500 mb-3">Total Invested</div>
+            <div class="metric-value gradient-text text-4xl md:text-5xl font-black" data-counter data-target="{{ total_invested }}">{{ total_invested }}</div>
+            <p class="mt-3 text-sm text-slate-400">Committed cost basis deployed into current public holdings.</p>
+          </div>
+          <div class="stat-card rounded-[1.5rem] p-6">
+            <div class="text-xs uppercase tracking-[0.28em] text-slate-500 mb-3">Average Return</div>
+            <div class="metric-value gradient-text text-4xl md:text-5xl font-black" data-counter data-target="{{ avg_return }}%">{{ avg_return }}%</div>
+            <p class="mt-3 text-sm text-slate-400">Average portfolio uplift relative to invested capital.</p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Companies Grid -->
-  <section class="py-12 px-6">
-    <div class="max-w-6xl mx-auto companies-grid grid md:grid-cols-2 gap-6">
-      {% set color_map = {
-        'amber': ('bg-amber-500/10', 'text-amber-400', 'border-amber-500/20'),
-        'sky': ('bg-sky-500/10', 'text-sky-400', 'border-sky-500/20'),
-        'emerald': ('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20'),
-        'violet': ('bg-violet-500/10', 'text-violet-400', 'border-violet-500/20'),
-        'orange': ('bg-orange-500/10', 'text-orange-400', 'border-orange-500/20'),
-        'teal': ('bg-teal-500/10', 'text-teal-400', 'border-teal-500/20'),
-      } %}
-      {% for company in companies %}
-      {% set bg, text, border = color_map.get(company.color, ('bg-slate-800', 'text-slate-400', 'border-slate-700')) %}
-      <div class="company-card glass rounded-2xl p-7 border {{ border }} card-hover relative overflow-hidden">
-        <div class="flex items-start justify-between mb-5">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-xl {{ bg }} border {{ border }} flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 {{ text }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-              </svg>
-            </div>
-            <div>
-              <div class="text-white font-bold">{{ company.name }}</div>
-              <div class="text-xs font-semibold {{ text }}">{{ company.ticker }} · {{ company.sector }}</div>
-            </div>
-          </div>
-          <span class="text-xs px-2.5 py-1 rounded-full font-semibold {% if company.status == 'Active' %}bg-emerald-500/15 text-emerald-400{% else %}bg-amber-500/15 text-amber-400{% endif %}">
-            {{ company.status }}
-          </span>
+  <section class="relative px-6 py-8 md:py-12">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 md:mb-10">
+        <div>
+          <div class="text-xs uppercase tracking-[0.28em] text-amber-300/80 mb-3">Portfolio Matrix</div>
+          <h2 class="text-3xl md:text-5xl font-black tracking-[-0.04em]">Company Detail Grid</h2>
         </div>
-
-        <p class="text-slate-400 text-sm leading-relaxed mb-5">{{ company.description }}</p>
-
-        <div class="grid grid-cols-2 gap-3 mb-5">
-          <div class="{{ bg }} rounded-lg p-3">
-            <div class="text-white font-bold text-lg">{{ fmt_currency(company.valuation) }}</div>
-            <div class="text-slate-500 text-xs">Valuation</div>
-          </div>
-          <div class="bg-slate-800/50 rounded-lg p-3">
-            <div class="text-emerald-400 font-bold text-lg">{{ company.growth }}</div>
-            <div class="text-slate-500 text-xs">Since Investment</div>
-          </div>
-          <div class="bg-slate-800/50 rounded-lg p-3">
-            <div class="text-white font-bold">{{ company.ownership }}%</div>
-            <div class="text-slate-500 text-xs">Ownership Stake</div>
-          </div>
-          <div class="bg-slate-800/50 rounded-lg p-3">
-            <div class="text-white font-bold">{{ "{:,}".format(company.employees) }}</div>
-            <div class="text-slate-500 text-xs">Employees</div>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between text-xs text-slate-500">
-          <div class="flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064"/></svg>
-            {{ company.headquarters }}
-          </div>
-          <div>Founded {{ company.founded }}</div>
-        </div>
+        <p class="max-w-2xl text-slate-400 leading-7">
+          Each card surfaces valuation, ownership, growth, and operating footprint — with direct access to the individual company detail page.
+        </p>
       </div>
-      {% endfor %}
+
+      <div class="companies-grid grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {% for company in companies %}
+        {% set bg, text, border = color_map.get(company.color, ('bg-slate-800', 'text-slate-400', 'border-slate-700')) %}
+        <article class="company-card rounded-[1.75rem] p-7 lg:p-8 border {{ border }}">
+          <div class="card-glow"></div>
+          <div class="card-sheen"></div>
+          <div class="card-outline"></div>
+          <div class="relative z-10">
+            <div class="flex items-start justify-between gap-4 mb-6">
+              <div class="flex items-center gap-4 min-w-0">
+                <div class="w-14 h-14 rounded-2xl {{ bg }} border {{ border }} flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 {{ text }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-white text-xl font-bold truncate">{{ company.name }}</div>
+                  <div class="mt-1 text-xs font-semibold uppercase tracking-[0.24em] {{ text }}">{{ company.ticker }} · {{ company.sector }}</div>
+                </div>
+              </div>
+              <span class="shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] {% if company.status == 'Active' %}bg-emerald-500/15 text-emerald-300 border border-emerald-400/20{% else %}bg-amber-500/15 text-amber-300 border border-amber-400/20{% endif %}">
+                {{ company.status }}
+              </span>
+            </div>
+
+            <p class="text-slate-300/82 text-sm leading-7 min-h-[5.25rem] mb-6">{{ company.description }}</p>
+
+            <div class="grid grid-cols-2 gap-3 mb-6">
+              <div class="metric-tile rounded-2xl p-4 {{ bg }} border {{ border }}">
+                <div class="text-xs uppercase tracking-[0.22em] text-slate-400 mb-2">Valuation</div>
+                <div class="text-white text-xl font-black">{{ fmt_currency(company.valuation) }}</div>
+              </div>
+              <div class="metric-tile rounded-2xl p-4 bg-slate-900/60">
+                <div class="text-xs uppercase tracking-[0.22em] text-slate-500 mb-2">Since Investment</div>
+                <div class="text-emerald-300 text-xl font-black">{{ company.growth }}</div>
+              </div>
+              <div class="metric-tile rounded-2xl p-4 bg-slate-900/60">
+                <div class="text-xs uppercase tracking-[0.22em] text-slate-500 mb-2">Ownership</div>
+                <div class="text-white text-xl font-black">{{ company.ownership }}%</div>
+              </div>
+              <div class="metric-tile rounded-2xl p-4 bg-slate-900/60">
+                <div class="text-xs uppercase tracking-[0.22em] text-slate-500 mb-2">Employees</div>
+                <div class="text-white text-xl font-black">{{ "{:,}".format(company.employees) }}</div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-4 text-xs text-slate-400 mb-6">
+              <div class="flex items-center gap-2 min-w-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064"/>
+                </svg>
+                <span class="truncate">{{ company.headquarters }}</span>
+              </div>
+              <div class="shrink-0">Founded {{ company.founded }}</div>
+            </div>
+
+            <a href="{{ url_for('public.company_detail', company_id=company.id) }}" class="portfolio-link inline-flex items-center justify-between w-full rounded-2xl px-5 py-4 bg-white/[0.04] border border-white/10 text-sm font-semibold text-white hover:text-amber-200 hover:border-amber-400/30 transition-all duration-300">
+              <span>View Company →</span>
+              <span class="text-slate-500">Deep dive</span>
+            </a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
     </div>
   </section>
 
-  <!-- Sector Allocation -->
-  <section class="py-16 px-6">
-    <div class="max-w-4xl mx-auto">
-      <h2 class="text-3xl font-black text-white text-center mb-10">Sector Allocation</h2>
-      <div class="glass rounded-2xl p-6 border border-slate-700/50">
-        {% set total = companies | sum(attribute='valuation') %}
-        <div class="space-y-4">
-          {% for company in companies %}
-          {% set bg, text, border = color_map.get(company.color, ('bg-slate-800', 'text-slate-400', 'border-slate-700')) %}
-          {% set pct = (company.valuation / total * 100) | round(1) %}
+  <section class="relative px-6 py-16 md:py-20">
+    {% set total = companies | sum(attribute='valuation') %}
+    <div class="max-w-6xl mx-auto">
+      <div class="allocation-shell rounded-[2rem] p-8 md:p-10 lg:p-12">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-10">
           <div>
-            <div class="flex justify-between text-sm mb-1.5">
-              <span class="text-slate-300 font-medium">{{ company.sector }}</span>
-              <span class="{{ text }} font-semibold">{{ pct }}%</span>
+            <div class="text-xs uppercase tracking-[0.28em] text-amber-300/80 mb-3">Exposure Profile</div>
+            <h2 class="text-3xl md:text-5xl font-black tracking-[-0.04em]">Sector Allocation</h2>
+          </div>
+          <p class="max-w-2xl text-slate-400 leading-7">
+            A live view of how portfolio value is distributed across the platform, highlighting sector concentration while preserving a diversified risk posture.
+          </p>
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+          <div class="space-y-4">
+            {% for company in companies %}
+            {% set bg, text, border = color_map.get(company.color, ('bg-slate-800', 'text-slate-400', 'border-slate-700')) %}
+            {% set pct = (company.valuation / total * 100) | round(1) %}
+            <div class="allocation-card rounded-[1.5rem] p-5 md:p-6">
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                <div>
+                  <div class="text-white font-semibold text-lg">{{ company.sector }}</div>
+                  <div class="text-sm text-slate-500">{{ company.name }} · {{ fmt_currency(company.valuation) }}</div>
+                </div>
+                <div class="{{ text }} text-2xl font-black">{{ pct }}%</div>
+              </div>
+              <div class="allocation-track h-3 rounded-full border border-white/5">
+                <div class="allocation-fill h-full rounded-full {% if company.color == 'amber' %}bg-amber-400{% elif company.color == 'sky' %}bg-sky-400{% elif company.color == 'emerald' %}bg-emerald-400{% elif company.color == 'violet' %}bg-violet-400{% elif company.color == 'orange' %}bg-orange-400{% else %}bg-teal-400{% endif %}" data-width="{{ pct }}" style="color: {% if company.color == 'amber' %}#fbbf24{% elif company.color == 'sky' %}#38bdf8{% elif company.color == 'emerald' %}#34d399{% elif company.color == 'violet' %}#a78bfa{% elif company.color == 'orange' %}#fb923c{% else %}#2dd4bf{% endif %};"></div>
+              </div>
             </div>
-            <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div class="h-full rounded-full {% if company.color == 'amber' %}bg-amber-400{% elif company.color == 'sky' %}bg-sky-400{% elif company.color == 'emerald' %}bg-emerald-400{% elif company.color == 'violet' %}bg-violet-400{% elif company.color == 'orange' %}bg-orange-400{% else %}bg-teal-400{% endif %}"
-                   style="width:{{ pct }}%"></div>
+            {% endfor %}
+          </div>
+
+          <div class="allocation-card rounded-[1.75rem] p-6 md:p-8 flex flex-col justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-[0.28em] text-slate-500 mb-4">Allocation Notes</div>
+              <div class="space-y-5">
+                <div>
+                  <div class="text-slate-400 text-sm mb-2">Primary objective</div>
+                  <div class="text-white text-lg font-semibold leading-8">Back market leaders with compounding operating leverage and defensible strategic moats.</div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="metric-tile rounded-2xl p-4">
+                    <div class="text-xs uppercase tracking-[0.22em] text-slate-500 mb-2">Holdings</div>
+                    <div class="text-3xl font-black text-white">{{ companies|length }}</div>
+                  </div>
+                  <div class="metric-tile rounded-2xl p-4">
+                    <div class="text-xs uppercase tracking-[0.22em] text-slate-500 mb-2">Avg. Return</div>
+                    <div class="text-3xl font-black gradient-text">{{ avg_return }}%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-8 rounded-[1.5rem] border border-amber-400/10 bg-amber-400/5 px-5 py-4 text-sm leading-7 text-slate-300">
+              Nova Capital's portfolio construction balances long-horizon ownership with clear sector conviction, maintaining disciplined exposure while preserving room for asymmetric upside.
             </div>
           </div>
-          {% endfor %}
         </div>
       </div>
     </div>
   </section>
-
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-gsap.registerPlugin(ScrollTrigger);
-gsap.fromTo('.portfolio-hero > *', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: 'power3.out', delay: 0.2 });
-gsap.fromTo('.company-card', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.12, ease: 'power3.out', scrollTrigger: { trigger: '.companies-grid', start: 'top 80%' } });
+  gsap.registerPlugin(ScrollTrigger);
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const parseCounterValue = (text) => {
+    const normalized = String(text).trim();
+    const match = normalized.match(/^([^\d-]*)([-\d.,]+)(.*)$/);
+    if (!match) {
+      return { finalText: normalized, prefix: '', suffix: '', value: 0, decimals: 0, abbreviated: false };
+    }
+
+    const [, prefix, numberPart, suffix] = match;
+    return {
+      finalText: normalized,
+      prefix,
+      suffix,
+      value: parseFloat(numberPart.replace(/,/g, '')) || 0,
+      decimals: numberPart.includes('.') ? numberPart.split('.')[1].length : 0,
+      abbreviated: /[KMBT]/i.test(suffix),
+    };
+  };
+
+  const formatCounterValue = (value, config) => {
+    const safeValue = Math.max(0, value);
+    if (config.abbreviated) {
+      return `${config.prefix}${safeValue.toFixed(config.decimals)}${config.suffix}`;
+    }
+
+    if (config.decimals > 0) {
+      return `${config.prefix}${safeValue.toLocaleString(undefined, {
+        minimumFractionDigits: config.decimals,
+        maximumFractionDigits: config.decimals,
+      })}${config.suffix}`;
+    }
+
+    return `${config.prefix}${Math.round(safeValue).toLocaleString()}${config.suffix}`;
+  };
+
+  if (!prefersReducedMotion) {
+    gsap.fromTo('.portfolio-hero > *',
+      { opacity: 0, y: 36 },
+      { opacity: 1, y: 0, duration: 1, stagger: 0.14, ease: 'power3.out' }
+    );
+
+    gsap.fromTo('.stat-card',
+      { opacity: 0, y: 32, scale: 0.96 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.9, stagger: 0.12, ease: 'power3.out', delay: 0.25 }
+    );
+
+    gsap.fromTo('.company-card',
+      { opacity: 0, y: 90, rotateX: 16, transformOrigin: '50% 100%' },
+      {
+        opacity: 1,
+        y: 0,
+        rotateX: 0,
+        duration: 1.05,
+        stagger: 0.12,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.companies-grid',
+          start: 'top 76%',
+          once: true,
+        },
+      }
+    );
+
+    gsap.fromTo('.allocation-card',
+      { opacity: 0, y: 36 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.9,
+        stagger: 0.1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.allocation-shell',
+          start: 'top 78%',
+          once: true,
+        },
+      }
+    );
+
+    gsap.to('.gradient-canvas', {
+      rotate: 8,
+      scale: 1.16,
+      xPercent: 4,
+      yPercent: -3,
+      duration: 18,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+    });
+
+    gsap.to('.gradient-mesh', {
+      xPercent: 3,
+      yPercent: 4,
+      duration: 16,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+    });
+
+    gsap.to('.particle-grid', {
+      backgroundPosition: '72px 48px, 72px 48px, 32px 18px, 20px 14px',
+      duration: 26,
+      repeat: -1,
+      ease: 'none',
+    });
+
+    gsap.utils.toArray('.floating-orb').forEach((orb, index) => {
+      gsap.to(orb, {
+        y: index % 2 === 0 ? -36 : 28,
+        x: index % 2 === 0 ? 20 : -18,
+        duration: 7 + index * 1.6,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+    });
+
+    gsap.utils.toArray('[data-counter]').forEach((counter, index) => {
+      const config = parseCounterValue(counter.dataset.target || counter.textContent);
+      const state = { value: 0 };
+      gsap.to(state, {
+        value: config.value,
+        duration: 2.2,
+        delay: 0.35 + index * 0.12,
+        ease: 'power3.out',
+        onUpdate: () => {
+          counter.textContent = formatCounterValue(state.value, config);
+        },
+        onComplete: () => {
+          counter.textContent = config.finalText;
+        },
+        scrollTrigger: {
+          trigger: counter,
+          start: 'top 92%',
+          once: true,
+        },
+      });
+    });
+
+    gsap.utils.toArray('.allocation-fill').forEach((bar) => {
+      const width = bar.dataset.width;
+      gsap.to(bar, {
+        width: `${width}%`,
+        duration: 1.4,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: bar,
+          start: 'top 90%',
+          once: true,
+        },
+      });
+    });
+  } else {
+    document.querySelectorAll('.allocation-fill').forEach((bar) => {
+      bar.style.width = `${bar.dataset.width}%`;
+    });
+  }
+
+  gsap.utils.toArray('.company-card').forEach((card) => {
+    const glow = card.querySelector('.card-glow');
+    const sheen = card.querySelector('.card-sheen');
+    const rotateXTo = gsap.quickTo(card, 'rotationX', { duration: 0.35, ease: 'power3.out' });
+    const rotateYTo = gsap.quickTo(card, 'rotationY', { duration: 0.35, ease: 'power3.out' });
+    const yTo = gsap.quickTo(card, 'y', { duration: 0.35, ease: 'power3.out' });
+
+    card.addEventListener('mousemove', (event) => {
+      if (prefersReducedMotion) return;
+      const rect = card.getBoundingClientRect();
+      const px = (event.clientX - rect.left) / rect.width;
+      const py = (event.clientY - rect.top) / rect.height;
+      const rotationY = gsap.utils.mapRange(0, 1, -10, 10, px);
+      const rotationX = gsap.utils.mapRange(0, 1, 10, -10, py);
+
+      rotateXTo(rotationX);
+      rotateYTo(rotationY);
+      yTo(-6);
+
+      if (glow) {
+        gsap.to(glow, {
+          opacity: 1,
+          x: gsap.utils.mapRange(0, 1, -24, 24, px),
+          y: gsap.utils.mapRange(0, 1, -24, 24, py),
+          duration: 0.3,
+          overwrite: true,
+        });
+      }
+
+      if (sheen) {
+        gsap.to(sheen, {
+          opacity: 0.55,
+          xPercent: gsap.utils.mapRange(0, 1, -10, 50, px),
+          duration: 0.35,
+          overwrite: true,
+        });
+      }
+    });
+
+    card.addEventListener('mouseleave', () => {
+      rotateXTo(0);
+      rotateYTo(0);
+      yTo(0);
+      if (glow) {
+        gsap.to(glow, { opacity: 0, x: 0, y: 0, duration: 0.45, overwrite: true });
+      }
+      if (sheen) {
+        gsap.to(sheen, { opacity: 0, xPercent: 0, duration: 0.45, overwrite: true });
+      }
+    });
+  });
 </script>
 {% endblock %}
